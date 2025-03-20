@@ -1,0 +1,48 @@
+import axios from 'axios';
+import { User } from '../types/user';
+
+const API_URL = process.env.REACT_APP_API_BASE_URL;
+
+class AuthService {
+  async login(email: string, password: string): Promise<{ access_token: string }> {
+    const response = await axios.post(`${API_URL}/auth/login`, {
+      username: email, // FastAPI OAuth2 expects 'username' field
+      password,
+    });
+    
+    if (response.data.access_token) {
+      localStorage.setItem('token', response.data.access_token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
+    }
+    
+    return response.data;
+  }
+
+  async register(email: string, password: string, fullName: string): Promise<User> {
+    const response = await axios.post(`${API_URL}/auth/register`, {
+      email,
+      password,
+      full_name: fullName,
+    });
+    
+    return response.data;
+  }
+
+  async fetchCurrentUser(): Promise<User> {
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const response = await axios.get(`${API_URL}/auth/me`);
+    return response.data;
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+  }
+}
+
+export default new AuthService();
