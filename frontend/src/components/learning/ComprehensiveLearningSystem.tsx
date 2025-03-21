@@ -111,56 +111,56 @@ const ComprehensiveLearningSystem: React.FC = () => {
       const mockTechniques: Technique[] = [
         {
           id: 1,
-          name: 'Разделение на роли',
-          description: 'Техника разделения промпта на четкие роли, которые должна выполнять модель',
-          category: 'Структурирование',
+          name: 'Role Assignment',
+          description: 'A technique of dividing prompts into clear roles that the model should perform',
+          category: 'Structuring',
           difficulty: 'beginner',
           examples: [
-            'Ты опытный редактор научных текстов. Твоя задача - улучшить следующий абзац...',
-            'Действуй как эксперт по UX-дизайну. Проанализируй следующий интерфейс...'
+            'You are an experienced scientific editor. Your task is to improve the following paragraph...',
+            'Act as a UX design expert. Analyze the following interface...'
           ],
-          tags: ['роли', 'персона', 'характер']
+          tags: ['roles', 'persona', 'character']
         },
         {
           id: 2,
-          name: 'Пошаговое мышление',
-          description: 'Техника, предписывающая модели разбивать решение на последовательные шаги',
-          category: 'Рассуждение',
+          name: 'Step-by-Step Thinking',
+          description: 'A technique that instructs the model to break down solutions into sequential steps',
+          category: 'Reasoning',
           difficulty: 'intermediate',
           examples: [
-            'Решай задачу поэтапно. Сначала выпиши, что нам известно, затем...',
-            'Шаг за шагом проанализируй следующий код и найди ошибки...'
+            'Solve the problem step by step. First, list what we know, then...',
+            'Step by step, analyze the following code and find errors...'
           ],
-          tags: ['рассуждение', 'логика', 'шаги']
+          tags: ['reasoning', 'logic', 'steps']
         },
         {
           id: 3,
-          name: 'Самопроверка',
-          description: 'Техника, при которой модель оценивает и исправляет свой собственный ответ',
-          category: 'Улучшение качества',
+          name: 'Self-Verification',
+          description: 'A technique where the model evaluates and corrects its own response',
+          category: 'Quality Improvement',
           difficulty: 'advanced',
           examples: [
-            'После того, как ты придумаешь решение, проверь его на корректность и наличие ошибок.',
-            'Сначала напиши код, а затем просмотри его и исправь возможные баги и неоптимальные участки.'
+            'After you come up with a solution, check it for correctness and potential errors.',
+            'First write the code, then review it and fix possible bugs and suboptimal sections.'
           ],
-          tags: ['проверка', 'улучшение', 'итерация']
+          tags: ['verification', 'improvement', 'iteration']
         }
       ];
       
       const mockTutorials: Tutorial[] = [
         {
           id: 1,
-          title: 'Основы промпт-инженерии',
-          description: 'Базовый курс по основам составления эффективных промптов',
+          title: 'Prompt Engineering Fundamentals',
+          description: 'Basic course on creating effective prompts',
           content: [
             {
               type: 'text',
-              content: 'Промпт-инженерия - это искусство составления запросов к языковым моделям, которые приводят к желаемым результатам. В этом туториале мы разберем основы...'
+              content: 'Prompt engineering is the art of crafting queries for language models that lead to desired results. In this tutorial, we will cover the basics...'
             },
             {
               type: 'code',
-              content: 'Ты эксперт по [область]. Помоги мне с [задача].\n\nКонкретная ситуация: [детали].\n\nМне нужно: [конкретный запрос].',
-              explanation: 'Этот базовый шаблон устанавливает роль, контекст и конкретную цель запроса.'
+              content: 'You are an expert in [field]. Help me with [task].\n\nSpecific situation: [details].\n\nI need: [specific request].',
+              explanation: 'This basic template establishes the role, context, and specific goal of the request.'
             }
           ],
           difficulty: 'beginner',
@@ -172,17 +172,17 @@ const ComprehensiveLearningSystem: React.FC = () => {
         },
         {
           id: 2,
-          title: 'Техники пошагового рассуждения',
-          description: 'Как заставить модель мыслить последовательно для улучшения результатов',
+          title: 'Step-by-Step Reasoning Techniques',
+          description: 'How to make the model think sequentially to improve results',
           content: [
             {
               type: 'text',
-              content: 'Одна из наиболее эффективных техник промпт-инженерии — "пошаговое мышление" (Chain-of-Thought). Эта техника помогает моделям решать сложные задачи, разбивая их на последовательные шаги...'
+              content: 'One of the most effective prompt engineering techniques is "Chain-of-Thought". This technique helps models solve complex problems by breaking them down into sequential steps...'
             },
             {
               type: 'code',
-              content: 'Решай задачу поэтапно. Для каждого шага объясни свое рассуждение, прежде чем перейти к следующему шагу.\n\nЗадача: [описание задачи]',
-              explanation: 'Этот шаблон заставляет модель демонстрировать ход своих мыслей, что особенно полезно для сложных задач.'
+              content: 'Solve the problem step by step. For each step, explain your reasoning before moving to the next step.\n\nProblem: [problem description]',
+              explanation: 'This template makes the model demonstrate its thought process, which is particularly useful for complex tasks.'
             }
           ],
           difficulty: 'intermediate',
@@ -194,17 +194,17 @@ const ComprehensiveLearningSystem: React.FC = () => {
         },
         {
           id: 3,
-          title: 'Продвинутые техники самопроверки',
-          description: 'Как заставить модель проверять и улучшать свои собственные ответы',
+          title: 'Advanced Self-Verification Techniques',
+          description: 'How to make the model check and improve its own answers',
           content: [
             {
               type: 'text',
-              content: 'Техника самопроверки позволяет значительно повысить качество ответов модели, особенно в задачах, требующих высокой точности и надежности...'
+              content: 'The self-verification technique significantly improves the quality of model responses, especially in tasks requiring high accuracy and reliability...'
             },
             {
               type: 'code',
-              content: 'Сначала реши задачу [описание задачи].\n\nПосле этого выполни следующие шаги:\n1. Проверь свое решение на возможные ошибки или нелогичности\n2. Рассмотри альтернативные подходы\n3. Выбери и представь наиболее оптимальное решение',
-              explanation: 'Этот шаблон заставляет модель критически оценить свой первоначальный ответ и улучшить его.'
+              content: 'First solve the problem [problem description].\n\nThen perform the following steps:\n1. Check your solution for possible errors or inconsistencies\n2. Consider alternative approaches\n3. Choose and present the most optimal solution',
+              explanation: 'This template makes the model critically evaluate its initial response and improve it.'
             }
           ],
           difficulty: 'advanced',
@@ -219,44 +219,44 @@ const ComprehensiveLearningSystem: React.FC = () => {
       const mockChallenges: Challenge[] = [
         {
           id: 1,
-          title: 'Создание информативного резюме статьи',
-          description: 'Создайте промпт, который поможет модели создать содержательное и структурированное резюме научной статьи.',
+          title: 'Creating an Informative Article Summary',
+          description: 'Create a prompt that helps the model generate a comprehensive and structured summary of a scientific article.',
           difficulty: 'beginner',
           techniques: [1],
-          instructions: 'Напишите промпт, который поможет модели создать качественное резюме статьи с выделением ключевых идей, методологии и результатов.',
-          starting_point: 'Резюмируй следующую статью:',
+          instructions: 'Write a prompt that will help the model create a quality article summary highlighting key ideas, methodology, and results.',
+          starting_point: 'Summarize the following article:',
           completed_by_user: false
         },
         {
           id: 2,
-          title: 'Решение математической задачи с пошаговым объяснением',
-          description: 'Создайте промпт, который заставит модель решить сложную математическую задачу с подробным пошаговым объяснением',
+          title: 'Solving a Mathematical Problem with Step-by-Step Explanation',
+          description: 'Create a prompt that will make the model solve a complex mathematical problem with detailed step-by-step explanation',
           difficulty: 'intermediate',
           techniques: [2],
-          instructions: 'Напишите промпт, который заставит модель детально объяснить каждый этап решения математической задачи, делая выкладки понятными даже для начинающих.',
-          starting_point: 'Реши следующую задачу:',
+          instructions: 'Write a prompt that will make the model explain each stage of solving a mathematical problem in detail, making the calculations understandable even for beginners.',
+          starting_point: 'Solve the following problem:',
           completed_by_user: false
         }
       ];
       
       const mockSkillProgress: SkillProgress[] = [
         {
-          category: 'Структурирование',
+          category: 'Structuring',
           level: 75,
           techniques_mastered: 3,
           techniques_total: 4
         },
         {
-          category: 'Рассуждение',
-          level: 40,
+          category: 'Reasoning',
+          level: 60,
           techniques_mastered: 2,
           techniques_total: 5
         },
         {
-          category: 'Улучшение качества',
-          level: 20,
+          category: 'Quality Improvement',
+          level: 40,
           techniques_mastered: 1,
-          techniques_total: 5
+          techniques_total: 3
         }
       ];
       
@@ -359,7 +359,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
   const SkillsProgressMap = () => (
     <Box sx={{ mb: 4 }}>
       <Typography variant="h6" gutterBottom>
-        Карта прогресса навыков
+        Skills Progress Map
       </Typography>
       <Grid container spacing={2}>
         {skillProgress.map((skill, index) => (
@@ -370,7 +370,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
                   {skill.category}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {skill.techniques_mastered} / {skill.techniques_total} техник
+                  {skill.techniques_mastered} / {skill.techniques_total} techniques
                 </Typography>
               </Box>
               <LinearProgress 
@@ -399,8 +399,8 @@ const ComprehensiveLearningSystem: React.FC = () => {
                 </Typography>
                 <Chip 
                   size="small" 
-                  label={tutorial.difficulty === 'beginner' ? 'Начинающий' : 
-                         tutorial.difficulty === 'intermediate' ? 'Средний' : 'Продвинутый'}
+                  label={tutorial.difficulty === 'beginner' ? 'Beginner' : 
+                         tutorial.difficulty === 'intermediate' ? 'Intermediate' : 'Advanced'}
                   color={tutorial.difficulty === 'beginner' ? 'success' : 
                          tutorial.difficulty === 'intermediate' ? 'primary' : 'error'}
                 />
@@ -411,12 +411,12 @@ const ComprehensiveLearningSystem: React.FC = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <MenuBookIcon fontSize="small" sx={{ mr: 1 }} />
                 <Typography variant="body2" color="text.secondary">
-                  {tutorial.estimated_time} мин. чтения
+                  {tutorial.estimated_time} min. reading
                 </Typography>
               </Box>
               <Box sx={{ mt: 2 }}>
                 <Typography variant="body2" gutterBottom>
-                  Прогресс:
+                  Progress:
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
@@ -432,7 +432,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
                 startIcon={tutorial.completed_by_user ? <CheckCircleIcon /> : undefined}
                 color={tutorial.completed_by_user ? "success" : "primary"}
               >
-                {tutorial.completed_by_user ? "Повторить" : tutorial.progress > 0 ? "Продолжить" : "Начать"}
+                {tutorial.completed_by_user ? "Repeat" : tutorial.progress > 0 ? "Continue" : "Start"}
               </Button>
               <Box sx={{ flexGrow: 1 }} />
               <IconButton size="small">
@@ -457,7 +457,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
             onClick={handleBackToTutorials}
             startIcon={<ArrowBackIcon />}
           >
-            Назад к списку
+            Back to List
           </Button>
         </Box>
         
@@ -466,8 +466,8 @@ const ComprehensiveLearningSystem: React.FC = () => {
             {selectedTutorial.title}
             <Chip 
               size="small" 
-              label={selectedTutorial.difficulty === 'beginner' ? 'Начинающий' : 
-                    selectedTutorial.difficulty === 'intermediate' ? 'Средний' : 'Продвинутый'}
+              label={selectedTutorial.difficulty === 'beginner' ? 'Beginner' : 
+                    selectedTutorial.difficulty === 'intermediate' ? 'Intermediate' : 'Advanced'}
               color={selectedTutorial.difficulty === 'beginner' ? 'success' : 
                     selectedTutorial.difficulty === 'intermediate' ? 'primary' : 'error'}
               sx={{ ml: 1 }}
@@ -510,10 +510,10 @@ const ComprehensiveLearningSystem: React.FC = () => {
         
         <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
           <Button variant="outlined">
-            Предыдущий урок
+            Previous Lesson
           </Button>
           <Button variant="contained">
-            Следующий урок
+            Next Lesson
           </Button>
         </Box>
       </Box>
@@ -526,7 +526,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <TextField
           fullWidth
-          placeholder="Поиск техник промпт-инженерии..."
+          placeholder="Search for prompt engineering techniques..."
           value={searchQuery}
           onChange={handleSearchChange}
           InputProps={{
@@ -540,7 +540,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
           {categories.map(category => (
             <Chip
               key={category}
-              label={category === 'all' ? 'Все категории' : category}
+              label={category === 'all' ? 'All Categories' : category}
               onClick={() => handleCategoryChange(category)}
               color={selectedCategory === category ? 'primary' : 'default'}
               variant={selectedCategory === category ? 'filled' : 'outlined'}
@@ -551,7 +551,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
       
       {filteredTechniques.length === 0 ? (
         <Alert severity="info">
-          Техники не найдены. Попробуйте изменить параметры поиска.
+          Techniques not found. Try changing search parameters.
         </Alert>
       ) : (
         <Grid container spacing={2}>
@@ -573,8 +573,8 @@ const ComprehensiveLearningSystem: React.FC = () => {
                     />
                     <Chip 
                       size="small" 
-                      label={technique.difficulty === 'beginner' ? 'Начинающий' : 
-                            technique.difficulty === 'intermediate' ? 'Средний' : 'Продвинутый'}
+                      label={technique.difficulty === 'beginner' ? 'Beginner' : 
+                            technique.difficulty === 'intermediate' ? 'Intermediate' : 'Advanced'}
                       color={technique.difficulty === 'beginner' ? 'success' : 
                             technique.difficulty === 'intermediate' ? 'primary' : 'error'}
                     />
@@ -586,7 +586,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
                   </Typography>
                   
                   <Typography variant="subtitle2" gutterBottom>
-                    Примеры использования:
+                    Example Usage:
                   </Typography>
                   <List>
                     {technique.examples.map((example, index) => (
@@ -625,8 +625,8 @@ const ComprehensiveLearningSystem: React.FC = () => {
                 </Typography>
                 <Chip 
                   size="small" 
-                  label={challenge.difficulty === 'beginner' ? 'Начинающий' : 
-                        challenge.difficulty === 'intermediate' ? 'Средний' : 'Продвинутый'}
+                  label={challenge.difficulty === 'beginner' ? 'Beginner' : 
+                        challenge.difficulty === 'intermediate' ? 'Intermediate' : 'Advanced'}
                   color={challenge.difficulty === 'beginner' ? 'success' : 
                         challenge.difficulty === 'intermediate' ? 'primary' : 'error'}
                 />
@@ -650,7 +650,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
                 startIcon={challenge.completed_by_user ? <CheckCircleIcon /> : undefined}
                 color={challenge.completed_by_user ? "success" : "primary"}
               >
-                {challenge.completed_by_user ? "Пройдено" : "Начать"}
+                {challenge.completed_by_user ? "Completed" : "Start"}
               </Button>
             </CardActions>
           </Card>
@@ -671,7 +671,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
             onClick={handleBackToChallenges}
             startIcon={<ArrowBackIcon />}
           >
-            Назад к списку
+            Back to List
           </Button>
         </Box>
         
@@ -680,8 +680,8 @@ const ComprehensiveLearningSystem: React.FC = () => {
             {selectedChallenge.title}
             <Chip 
               size="small" 
-              label={selectedChallenge.difficulty === 'beginner' ? 'Начинающий' : 
-                    selectedChallenge.difficulty === 'intermediate' ? 'Средний' : 'Продвинутый'}
+              label={selectedChallenge.difficulty === 'beginner' ? 'Beginner' : 
+                    selectedChallenge.difficulty === 'intermediate' ? 'Intermediate' : 'Advanced'}
               color={selectedChallenge.difficulty === 'beginner' ? 'success' : 
                     selectedChallenge.difficulty === 'intermediate' ? 'primary' : 'error'}
               sx={{ ml: 1 }}
@@ -694,7 +694,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
         
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Инструкция
+            Instructions
           </Typography>
           <Typography variant="body1" paragraph>
             {selectedChallenge.instructions}
@@ -703,7 +703,7 @@ const ComprehensiveLearningSystem: React.FC = () => {
           {selectedChallenge.starting_point && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle2" gutterBottom>
-                Начальная точка:
+                Starting Point:
               </Typography>
               <Paper sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
                 <Typography component="pre" sx={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
@@ -716,23 +716,23 @@ const ComprehensiveLearningSystem: React.FC = () => {
         
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Ваше решение
+            Your Solution
           </Typography>
           <TextField
             fullWidth
             multiline
             rows={6}
-            placeholder="Напишите ваш промпт здесь..."
+            placeholder="Write your prompt here..."
             variant="outlined"
           />
         </Box>
         
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Button variant="outlined">
-            Подсказка
+            Hint
           </Button>
           <Button variant="contained">
-            Проверить решение
+            Check Solution
           </Button>
         </Box>
       </Box>
@@ -743,17 +743,17 @@ const ComprehensiveLearningSystem: React.FC = () => {
   const ContextualHelper = () => (
     <Box sx={{ mb: 4 }}>
       <Typography variant="h6" gutterBottom>
-        Помощник по контексту
+        Contextual Helper
       </Typography>
       <Typography variant="body2" paragraph>
-        Введите ваш промпт ниже, и система предложит подходящие техники в зависимости от содержимого.
+        Enter your prompt below, and the system will suggest appropriate techniques based on the content.
       </Typography>
       
       <TextField
         fullWidth
         multiline
         rows={4}
-        placeholder="Напишите ваш промпт здесь..."
+        placeholder="Write your prompt here..."
         variant="outlined"
         onChange={handlePromptChange}
         sx={{ mb: 2 }}
@@ -765,11 +765,11 @@ const ComprehensiveLearningSystem: React.FC = () => {
           icon={<LightbulbIcon />}
           action={
             <Button size="small" color="inherit">
-              Подробнее
+              More Info
             </Button>
           }
         >
-          <AlertTitle>Рекомендуемая техника: {contextualTip.name}</AlertTitle>
+          <AlertTitle>Recommended Technique: {contextualTip.name}</AlertTitle>
           {contextualTip.description}
         </Alert>
       )}
@@ -780,16 +780,27 @@ const ComprehensiveLearningSystem: React.FC = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">
-          Обучение промпт-инженерии
+          Prompt Engineering Learning System
         </Typography>
         <Button 
           variant="outlined" 
           startIcon={<InfoIcon />}
           onClick={handleOpenHelpDialog}
         >
-          Помощь
+          Help
         </Button>
       </Box>
+      
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+        <Typography variant="h5" gutterBottom>
+          Learn Prompt Engineering
+        </Typography>
+        <Typography variant="body1">
+          Explore our learning section dedicated to prompt engineering techniques. Access a curated collection of tutorials, 
+          practical methods, and interactive exercises to enhance your prompting skills. Use this knowledge to create more 
+          effective prompts directly in the tool, leveraging real-time feedback and examples to improve your results.
+        </Typography>
+      </Paper>
       
       {loading ? (
         <CircularProgress />
@@ -799,10 +810,10 @@ const ComprehensiveLearningSystem: React.FC = () => {
         <Box>
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
             <Tabs value={tabIndex} onChange={handleTabChange}>
-              <Tab icon={<SchoolIcon />} label="Учебные материалы" iconPosition="start" />
-              <Tab icon={<CategoryIcon />} label="Техники" iconPosition="start" />
-              <Tab icon={<AssignmentIcon />} label="Задания" iconPosition="start" />
-              <Tab icon={<PsychologyIcon />} label="Помощник" iconPosition="start" />
+              <Tab icon={<SchoolIcon />} label="Learning Materials" iconPosition="start" />
+              <Tab icon={<CategoryIcon />} label="Techniques" iconPosition="start" />
+              <Tab icon={<AssignmentIcon />} label="Challenges" iconPosition="start" />
+              <Tab icon={<PsychologyIcon />} label="Helper" iconPosition="start" />
             </Tabs>
           </Box>
           
@@ -846,38 +857,38 @@ const ComprehensiveLearningSystem: React.FC = () => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Как использовать обучающую систему</DialogTitle>
+        <DialogTitle>How to Use the Learning System</DialogTitle>
         <DialogContent>
           <Typography variant="h6" gutterBottom>
-            Учебные материалы
+            Learning Materials
           </Typography>
           <Typography variant="body1" paragraph>
-            Этот раздел содержит структурированные учебные материалы по промпт-инженерии. Вы можете изучать уроки в рекомендуемом порядке или выбирать интересующие вас темы.
+            This section contains structured learning materials on prompt engineering. You can study lessons in the recommended order or choose topics that interest you.
           </Typography>
           
           <Typography variant="h6" gutterBottom>
-            Техники
+            Techniques
           </Typography>
           <Typography variant="body1" paragraph>
-            Библиотека техник промпт-инженерии с примерами использования. Изучайте различные подходы и методы для создания эффективных промптов.
+            Prompt engineering techniques library with examples of usage. Study various approaches and methods for creating effective prompts.
           </Typography>
           
           <Typography variant="h6" gutterBottom>
-            Задания
+            Challenges
           </Typography>
           <Typography variant="body1" paragraph>
-            Практические задания для закрепления изученного материала. Выполните их, чтобы проверить свои навыки и получить обратную связь.
+            Practical tasks to consolidate the learned material. Complete them to check your skills and get feedback.
           </Typography>
           
           <Typography variant="h6" gutterBottom>
-            Помощник
+            Helper
           </Typography>
           <Typography variant="body1" paragraph>
-            Умный помощник, который анализирует ваши промпты и предлагает рекомендации по улучшению на основе изученных техник.
+            Smart helper that analyzes your prompts and suggests recommendations for improvement based on studied techniques.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseHelpDialog}>Закрыть</Button>
+          <Button onClick={handleCloseHelpDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
