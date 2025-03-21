@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Box, Typography, Button, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Chip,
-  CircularProgress, Alert
+  CircularProgress, Alert, TextField, InputAdornment
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Preview as PreviewIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Preview as PreviewIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchPrompts, deletePrompt } from '../store/slices/promptSlice';
@@ -14,6 +14,7 @@ const Prompts: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { prompts, loading, error } = useAppSelector((state) => state.prompt);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     // Загружаем список промптов при монтировании компонента
@@ -34,18 +35,31 @@ const Prompts: React.FC = () => {
     }
   };
 
+  // Фильтрация промптов по поисковому запросу
+  const filteredPrompts = prompts?.filter(prompt => 
+    prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (prompt.description && prompt.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">Prompts</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant="outlined"
-            startIcon={<GroupIcon />}
-            onClick={() => navigate('/collaborative')}
-          >
-            Collaboration
-          </Button>
+          <TextField
+            size="small"
+            placeholder="Search prompts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: '300px' }}
+          />
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -58,7 +72,7 @@ const Prompts: React.FC = () => {
 
       <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
         <Typography variant="h5" gutterBottom>
-          Prompt Management
+          Prompt Development
         </Typography>
         <Typography variant="body1">
           Create, edit, and manage your AI prompts in one place. Build powerful prompts using our advanced editor with 
@@ -75,10 +89,10 @@ const Prompts: React.FC = () => {
         </Box>
       ) : (
         <>
-          {prompts?.length === 0 ? (
+          {filteredPrompts?.length === 0 ? (
             <Paper sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body1" color="text.secondary" gutterBottom>
-                No prompts found
+                {searchQuery ? 'No prompts found matching your search' : 'No prompts found'}
               </Typography>
               <Button 
                 variant="contained" 
@@ -94,6 +108,7 @@ const Prompts: React.FC = () => {
               <Table>
                 <TableHead>
                   <TableRow>
+                    <TableCell width={50}>#</TableCell>
                     <TableCell>Name</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell>Created</TableCell>
@@ -102,8 +117,9 @@ const Prompts: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {prompts?.map((prompt) => (
+                  {filteredPrompts?.map((prompt, index) => (
                     <TableRow key={prompt.id} hover>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell>{prompt.name}</TableCell>
                       <TableCell>{prompt.description || '-'}</TableCell>
                       <TableCell>
