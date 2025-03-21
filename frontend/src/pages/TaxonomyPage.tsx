@@ -240,199 +240,107 @@ const TaxonomyPage: React.FC = () => {
     : taxonomyData;
 
   return (
-    <Box sx={{ maxWidth: '1200px', margin: '0 auto', p: 3 }}>
-      <Typography variant="h5" gutterBottom>Prompt Techniques Taxonomy</Typography>
-      
-      {/* Баннер таксономии */}
-      <Paper 
-        sx={{ 
-          mb: 3, 
-          bgcolor: '#5E35B1', 
-          color: 'white', 
-          p: 3,
-          borderRadius: 2
-        }}
-      >
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h5">Prompt Techniques Taxonomy</Typography>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <TextField
+            label="Search Techniques"
+            variant="outlined"
+            size="small"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: '300px' }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleToggleAll}
+          >
+            {expandAll ? 'Collapse All' : 'Expand All'}
+          </Button>
+        </Box>
+      </Box>
+
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
         <Typography variant="h5" gutterBottom>
-          Comprehensive Taxonomy of Prompting Techniques
+          Prompt Engineering Techniques Library
         </Typography>
         <Typography variant="body1">
-          Research on prompt engineering has evolved rapidly, with numerous techniques documented in academic literature. Below is a comprehensive classification of prompting methods with references to scientific publications.
+          Explore our comprehensive collection of prompt engineering techniques, from basic instructions to advanced 
+          reasoning methods. Each technique is documented with descriptions, examples, and academic references. 
+          Use these patterns to improve your prompts and achieve better results with AI models.
         </Typography>
       </Paper>
-      
-      {/* Поисковая строка и управление раскрытием */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <TextField
-          label="Search Techniques"
-          variant="outlined"
-          size="small"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ width: '300px' }}
-        />
-        
-        <Button
-          variant="outlined"
-          onClick={handleToggleAll}
+
+      {filteredData.map((category) => (
+        <Accordion
+          key={category.id}
+          expanded={expandAll || expandedCategory === category.id}
+          onChange={handleCategoryToggle(category.id)}
+          sx={{ mb: 2 }}
         >
-          {expandAll ? 'Collapse All' : 'Expand All'}
-        </Button>
-      </Box>
-      
-      {/* Категории таксономии */}
-      {filteredData.length > 0 ? (
-        filteredData.map((category) => (
-          <Accordion 
-            key={category.id}
-            expanded={expandAll || expandedCategory === category.id}
-            onChange={handleCategoryToggle(category.id)}
-            sx={{ mb: 2, border: '1px solid', borderColor: 'divider' }}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              sx={{ 
-                bgcolor: '#5E35B1', 
-                color: 'white',
-                '&:hover': { bgcolor: '#4527A0' },
-                '& .MuiAccordionSummary-expandIconWrapper': {
-                  color: 'white',
-                }
-              }}
-            >
-              <Typography variant="h6">{category.title}</Typography>
-            </AccordionSummary>
-            <AccordionDetails sx={{ p: 3 }}>
-              <Typography variant="body1" paragraph sx={{ color: '#666666' }}>
-                {category.description}
-              </Typography>
-              
-              <Divider sx={{ mb: 3 }} />
-              
-              <Grid container spacing={3}>
-                {category.techniques.map((technique) => (
-                  <Grid item xs={12} md={6} key={technique.id}>
-                    <Card 
-                      variant="outlined" 
-                      sx={{ 
-                        height: '100%',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                      }}
-                    >
-                      <CardContent>
-                        {/* Заголовок техники */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-                          <SchoolIcon sx={{ mr: 1, color: '#5E35B1' }} />
-                          <Typography variant="h6" component="h3">
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">{category.title}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography color="text.secondary" paragraph>
+              {category.description}
+            </Typography>
+            <Grid container spacing={3}>
+              {category.techniques.map((technique) => (
+                <Grid item xs={12} key={technique.id}>
+                  <Card>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Box>
+                          <Typography variant="h6" component="div">
                             {technique.name}
                           </Typography>
-                          <Tooltip title={technique.complexity}>
-                            <Box 
-                              sx={{ 
-                                ml: 1, 
-                                px: 1, 
-                                py: 0.5, 
-                                bgcolor: technique.complexity === 'Basic' ? '#E8F5E9' : 
-                                         technique.complexity === 'Intermediate' ? '#FFF8E1' : '#FFEBEE',
-                                color: technique.complexity === 'Basic' ? '#2E7D32' : 
-                                       technique.complexity === 'Intermediate' ? '#F57F17' : '#C62828',
-                                borderRadius: 1,
-                                fontSize: '0.7rem',
-                                fontWeight: 'bold',
-                              }}
-                            >
-                              {technique.complexity}
-                            </Box>
-                          </Tooltip>
-                        </Box>
-                        
-                        {/* Описание техники */}
-                        <Typography variant="body2" paragraph sx={{ color: '#424242' }}>
-                          {technique.description}
-                        </Typography>
-                        
-                        {/* Научная ссылка */}
-                        <Typography 
-                          variant="body2" 
-                          paragraph 
-                          sx={{ 
-                            fontStyle: 'italic', 
-                            color: '#666666',
-                            fontSize: '0.85rem' 
-                          }}
-                        >
-                          <strong>Reference:</strong> {technique.reference}
-                        </Typography>
-                        
-                        {/* Пример использования */}
-                        <Box sx={{ position: 'relative' }}>
-                          <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                            Example:
+                          <Typography variant="caption" color="text.secondary" gutterBottom>
+                            Complexity: {technique.complexity}
                           </Typography>
-                          <Box 
-                            sx={{ 
-                              bgcolor: '#F5F5F5', 
-                              p: 1.5, 
-                              borderRadius: 1,
-                              fontFamily: '"Roboto Mono", monospace',
-                              fontSize: '0.875rem',
-                              whiteSpace: 'pre-wrap',
-                              maxHeight: '150px',
-                              overflowY: 'auto'
-                            }}
-                          >
-                            {technique.example}
-                          </Box>
-                          <Tooltip title="Copy Example">
-                            <IconButton 
-                              size="small" 
-                              sx={{ 
-                                position: 'absolute', 
-                                top: 0, 
-                                right: 0 
-                              }}
-                              onClick={() => handleCopyExample(technique.example)}
-                            >
-                              <ContentCopyIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
                         </Box>
-                        
-                        {/* Кнопка "Попробовать эту технику" */}
-                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                          <Button
+                        <Tooltip title="Copy Example">
+                          <IconButton 
                             size="small"
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => window.location.href = '/prompts/new?technique=' + technique.id}
+                            onClick={() => handleCopyExample(technique.example)}
                           >
-                            Try This Technique
-                          </Button>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-        ))
-      ) : (
-        <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography color="text.secondary">
-            No techniques match your search criteria.
-          </Typography>
-        </Paper>
-      )}
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                      
+                      <Typography variant="body2" paragraph>
+                        {technique.description}
+                      </Typography>
+                      
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Reference: {technique.reference}
+                      </Typography>
+                      
+                      <Box sx={{ mt: 2, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
+                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                          Example:
+                        </Typography>
+                        <Typography variant="caption" sx={{ whiteSpace: 'pre-wrap', display: 'block' }}>
+                          {technique.example}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+      ))}
     </Box>
   );
 };

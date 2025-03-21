@@ -3,7 +3,7 @@ import {
   Box, Typography, Paper, Grid, FormControl, InputLabel, 
   Select, MenuItem, CircularProgress, Alert, Card, CardContent,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Tooltip, ButtonGroup, Button, Tabs, Tab, Container, AlertTitle
+  Tooltip, ButtonGroup, Button, AlertTitle
 } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { 
@@ -19,39 +19,13 @@ import PieChartIcon from '@mui/icons-material/PieChart';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import BubbleChartIcon from '@mui/icons-material/BubbleChart';
-import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import { useNavigate } from 'react-router-dom';
-
-// TabPanel component for tab display
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <Box
-      role="tabpanel"
-      hidden={value !== index}
-      id={`analytics-tabpanel-${index}`}
-      aria-labelledby={`analytics-tab-${index}`}
-      {...other}
-      sx={{ pt: 2 }}
-    >
-      {value === index && children}
-    </Box>
-  );
-}
 
 const Analytics: React.FC = () => {
   const dispatch = useAppDispatch();
   const { promptUsage, providerUsage, aggregatedData, loading, error } = useAppSelector((state) => state.analytics);
   
   const [timeFrame, setTimeFrame] = useState('month');
-  const [tabIndex, setTabIndex] = useState(0);
   const [chartType, setChartType] = useState<Record<string, string>>({
     promptUsage: 'bar',
     providerUsage: 'pie',
@@ -60,19 +34,12 @@ const Analytics: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // Handle tab change
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTabIndex(newValue);
-  };
-
   // Fetch analytics data
   useEffect(() => {
-    if (tabIndex === 0) { // Only fetch API data when on the standard analytics tab
     dispatch(fetchPromptUsage(timeFrame === 'week' ? 7 : timeFrame === 'month' ? 30 : 90));
     dispatch(fetchProviderUsage(timeFrame === 'week' ? 7 : timeFrame === 'month' ? 30 : 90));
     dispatch(fetchAggregatedAnalytics(timeFrame === 'week' ? '7d' : timeFrame === 'month' ? '30d' : '90d'));
-    }
-  }, [dispatch, timeFrame, tabIndex]);
+  }, [dispatch, timeFrame]);
 
   // Handle time frame change
   const handleTimeFrameChange = (event: React.ChangeEvent<HTMLInputElement> | any) => {
@@ -384,162 +351,151 @@ const Analytics: React.FC = () => {
       </Paper>
 
       <Paper sx={{ width: '100%', mb: 4, p: 3 }}>
-        <Tabs value={tabIndex} onChange={handleTabChange} sx={{ mb: 3 }}>
-          <Tab label="Standard Metrics" />
-          <Tab label="Advanced Analytics" />
-        </Tabs>
-        
-        <TabPanel value={tabIndex} index={0}>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
-          ) : error ? (
-            <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
+        ) : error ? (
+          <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
         ) : (
           <>
-              {/* Metrics Summary Cards */}
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={3}>
+            {/* Metrics Summary Cards */}
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={3}>
                 <Card>
                   <CardContent>
-                      <Typography color="textSecondary" gutterBottom>Total Prompts</Typography>
-                      <Typography variant="h4">{aggregatedData?.total_prompts || 0}</Typography>
+                    <Typography color="textSecondary" gutterBottom>Total Prompts</Typography>
+                    <Typography variant="h4">{aggregatedData?.total_prompts || 0}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
-                <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={3}>
                 <Card>
                   <CardContent>
-                      <Typography color="textSecondary" gutterBottom>Total Runs</Typography>
-                      <Typography variant="h4">{aggregatedData?.total_runs?.toLocaleString() || 0}</Typography>
+                    <Typography color="textSecondary" gutterBottom>Total Runs</Typography>
+                    <Typography variant="h4">{aggregatedData?.total_runs?.toLocaleString() || 0}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
-                <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={3}>
                 <Card>
                   <CardContent>
-                      <Typography color="textSecondary" gutterBottom>Input Tokens</Typography>
-                      <Typography variant="h4">{aggregatedData?.total_input_tokens?.toLocaleString() || 0}</Typography>
+                    <Typography color="textSecondary" gutterBottom>Input Tokens</Typography>
+                    <Typography variant="h4">{aggregatedData?.total_input_tokens?.toLocaleString() || 0}</Typography>
                   </CardContent>
                 </Card>
               </Grid>
-                <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={3}>
                 <Card>
                   <CardContent>
-                      <Typography color="textSecondary" gutterBottom>Output Tokens</Typography>
-                      <Typography variant="h4">{aggregatedData?.total_output_tokens?.toLocaleString() || 0}</Typography>
+                    <Typography color="textSecondary" gutterBottom>Output Tokens</Typography>
+                    <Typography variant="h4">{aggregatedData?.total_output_tokens?.toLocaleString() || 0}</Typography>
                   </CardContent>
                 </Card>
-            </Grid>
-            
-                {/* Prompt Usage Chart */}
-                <Grid item xs={12}>
-                  <Paper sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="h6">Top Prompts by Usage</Typography>
-                      <ButtonGroup size="small">
-                        <Tooltip title="Bar Chart">
-                          <Button 
-                            onClick={() => handleChartTypeChange('promptUsage', 'bar')}
-                            variant={chartType.promptUsage === 'bar' ? 'contained' : 'outlined'}
-                          >
-                            <BarChartIcon />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip title="Line Chart">
-                          <Button 
-                            onClick={() => handleChartTypeChange('promptUsage', 'line')}
-                            variant={chartType.promptUsage === 'line' ? 'contained' : 'outlined'}
-                          >
-                            <ShowChartIcon />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip title="Table View">
-                          <Button 
-                            onClick={() => handleChartTypeChange('promptUsage', 'table')}
-                            variant={chartType.promptUsage === 'table' ? 'contained' : 'outlined'}
-                          >
-                            <TableChartIcon />
-                          </Button>
-                        </Tooltip>
-                      </ButtonGroup>
-                    </Box>
-                    {renderPromptUsageChart()}
+              </Grid>
+
+              {/* Prompt Usage Chart */}
+              <Grid item xs={12}>
+                <Paper sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">Top Prompts by Usage</Typography>
+                    <ButtonGroup size="small">
+                      <Tooltip title="Bar Chart">
+                        <Button 
+                          onClick={() => handleChartTypeChange('promptUsage', 'bar')}
+                          variant={chartType.promptUsage === 'bar' ? 'contained' : 'outlined'}
+                        >
+                          <BarChartIcon />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Line Chart">
+                        <Button 
+                          onClick={() => handleChartTypeChange('promptUsage', 'line')}
+                          variant={chartType.promptUsage === 'line' ? 'contained' : 'outlined'}
+                        >
+                          <ShowChartIcon />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Table View">
+                        <Button 
+                          onClick={() => handleChartTypeChange('promptUsage', 'table')}
+                          variant={chartType.promptUsage === 'table' ? 'contained' : 'outlined'}
+                        >
+                          <TableChartIcon />
+                        </Button>
+                      </Tooltip>
+                    </ButtonGroup>
+                  </Box>
+                  {renderPromptUsageChart()}
                 </Paper>
               </Grid>
-              
-                {/* Provider Usage Chart */}
+
+              {/* Provider Usage Chart */}
               <Grid item xs={12} md={6}>
                 <Paper sx={{ p: 3, height: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="h6">Usage by Provider</Typography>
-                      <ButtonGroup size="small">
-                        <Tooltip title="Pie Chart">
-                          <Button 
-                            onClick={() => handleChartTypeChange('providerUsage', 'pie')}
-                            variant={chartType.providerUsage === 'pie' ? 'contained' : 'outlined'}
-                          >
-                            <PieChartIcon />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip title="Bar Chart">
-                          <Button 
-                            onClick={() => handleChartTypeChange('providerUsage', 'bar')}
-                            variant={chartType.providerUsage === 'bar' ? 'contained' : 'outlined'}
-                          >
-                            <BarChartIcon />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip title="Table View">
-                          <Button 
-                            onClick={() => handleChartTypeChange('providerUsage', 'table')}
-                            variant={chartType.providerUsage === 'table' ? 'contained' : 'outlined'}
-                          >
-                            <TableChartIcon />
-                          </Button>
-                        </Tooltip>
-                      </ButtonGroup>
-                    </Box>
-                    {renderProviderUsageChart()}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">Usage by Provider</Typography>
+                    <ButtonGroup size="small">
+                      <Tooltip title="Pie Chart">
+                        <Button 
+                          onClick={() => handleChartTypeChange('providerUsage', 'pie')}
+                          variant={chartType.providerUsage === 'pie' ? 'contained' : 'outlined'}
+                        >
+                          <PieChartIcon />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Bar Chart">
+                        <Button 
+                          onClick={() => handleChartTypeChange('providerUsage', 'bar')}
+                          variant={chartType.providerUsage === 'bar' ? 'contained' : 'outlined'}
+                        >
+                          <BarChartIcon />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Table View">
+                        <Button 
+                          onClick={() => handleChartTypeChange('providerUsage', 'table')}
+                          variant={chartType.providerUsage === 'table' ? 'contained' : 'outlined'}
+                        >
+                          <TableChartIcon />
+                        </Button>
+                      </Tooltip>
+                    </ButtonGroup>
+                  </Box>
+                  {renderProviderUsageChart()}
                 </Paper>
               </Grid>
-              
-                {/* Token Usage Chart */}
-                <Grid item xs={12} md={6}>
-                  <Paper sx={{ p: 3, height: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <Typography variant="h6">Token Distribution</Typography>
-                      <ButtonGroup size="small">
-                        <Tooltip title="Area Chart">
-                          <Button 
-                            onClick={() => handleChartTypeChange('tokenUsage', 'area')}
-                            variant={chartType.tokenUsage === 'area' ? 'contained' : 'outlined'}
-                          >
-                            <ShowChartIcon />
-                          </Button>
-                        </Tooltip>
-                        <Tooltip title="Bubble Chart">
-                          <Button 
-                            onClick={() => handleChartTypeChange('tokenUsage', 'bubble')}
-                            variant={chartType.tokenUsage === 'bubble' ? 'contained' : 'outlined'}
-                          >
-                            <BubbleChartIcon />
-                          </Button>
-                        </Tooltip>
-                      </ButtonGroup>
-                    </Box>
-                    {renderTokenUsageChart()}
+
+              {/* Token Usage Chart */}
+              <Grid item xs={12} md={6}>
+                <Paper sx={{ p: 3, height: '100%' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">Token Distribution</Typography>
+                    <ButtonGroup size="small">
+                      <Tooltip title="Area Chart">
+                        <Button 
+                          onClick={() => handleChartTypeChange('tokenUsage', 'area')}
+                          variant={chartType.tokenUsage === 'area' ? 'contained' : 'outlined'}
+                        >
+                          <ShowChartIcon />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Bubble Chart">
+                        <Button 
+                          onClick={() => handleChartTypeChange('tokenUsage', 'bubble')}
+                          variant={chartType.tokenUsage === 'bubble' ? 'contained' : 'outlined'}
+                        >
+                          <BubbleChartIcon />
+                        </Button>
+                      </Tooltip>
+                    </ButtonGroup>
+                  </Box>
+                  {renderTokenUsageChart()}
                 </Paper>
               </Grid>
             </Grid>
           </>
         )}
-        </TabPanel>
-        
-        <TabPanel value={tabIndex} index={1}>
-          <AnalyticsDashboard />
-        </TabPanel>
       </Paper>
     </Box>
   );
