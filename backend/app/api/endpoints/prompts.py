@@ -13,6 +13,10 @@ from app.services.document import DocumentService
 from app.services.testing import TestingService
 from app.schemas import TestResult, RagTestCreate
 from app.utils import logger
+from fastapi import status
+import logging
+from app.schemas.prompt_execution import PromptExecutionSchema
+from app.db.models.prompt_analytics import PromptAnalytics
 
 router = APIRouter()
 
@@ -527,3 +531,106 @@ async def test_prompt_with_rag(
     except Exception as e:
         logger.error(f"Error testing prompt with RAG: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{prompt_id}/execute")
+def execute_prompt(
+    prompt_id: int,
+    execution_request: PromptExecutionSchema,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """
+    Execute a prompt with a language model
+    """
+    # Получаем промпт из базы
+    prompt = db.query(Prompt).filter(Prompt.id == prompt_id, Prompt.user_id == current_user.id).first()
+    if not prompt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Prompt not found"
+        )
+    
+    # Получаем тело промпта и переменные
+    prompt_template = prompt.content
+    variables = prompt.variables
+    
+    # Предварительная обработка промпта
+    processed_prompt = prepare_prompt(prompt_template, variables, execution_request.variables)
+    
+    # Создаем сообщения в формате ChatGPT
+    messages = []
+    
+    # Если есть системное сообщение, добавляем его
+    if prompt.system_message:
+        system_message = prepare_prompt(prompt.system_message, variables, execution_request.variables)
+        messages.append({"role": "system", "content": system_message})
+    
+    # Добавляем основное сообщение пользователя
+    messages.append({"role": "user", "content": processed_prompt})
+    
+    # Определение параметров модели
+    model_parameters = {
+        "temperature": execution_request.parameters.get("temperature", 0.7),
+        "max_tokens": execution_request.parameters.get("max_tokens", 1000),
+        "top_p": execution_request.parameters.get("top_p", 0.95),
+    }
+    
+    model = execution_request.model
+    provider = execution_request.provider
+    
+    start_time = time.time()
+    
+    try:
+        # Получаем клиент для указанного провайдера, передавая пользователя и DB
+        client = get_llm_client(provider, user=current_user, db=db)
+        
+        if not client:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Provider {provider} not supported or API key not configured"
+            )
+        
+        # Вызываем модель
+        result = client.process_prompt(messages, model, model_parameters)
+        
+        # Форматируем ответ
+        response = client.format_response(result)
+        
+        # Сохраняем аналитику
+        end_time = time.time()
+        execution_time = end_time - start_time
+        
+        analytics = PromptAnalytics(
+            prompt_id=prompt.id,
+            user_id=current_user.id,
+            metrics={"usage": response.get("usage", {}), "execution_time": execution_time},
+            provider=provider,
+            average_response_time=execution_time
+        )
+        
+        if "usage" in response:
+            usage = response["usage"]
+            
+            if "input_tokens" in usage and "output_tokens" in usage:
+                input_tokens = usage["input_tokens"]
+                output_tokens = usage["output_tokens"]
+                analytics.average_token_count = input_tokens + output_tokens
+            elif "prompt_tokens" in usage and "completion_tokens" in usage:
+                input_tokens = usage["prompt_tokens"]
+                output_tokens = usage["completion_tokens"]
+                analytics.average_token_count = input_tokens + output_tokens
+        
+        db.add(analytics)
+        db.commit()
+        
+        return {"result": response.get("content", "")}
+    
+    except Exception as e:
+        # Логирование ошибки
+        logging.error(f"Error executing prompt: {str(e)}", exc_info=True)
+        
+        # Возвращаем ошибку клиенту
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error executing prompt: {str(e)}"
+        )

@@ -292,26 +292,53 @@ class GoogleAIClient(LLMClientBase):
         ]
 
 # Factory to create appropriate client instance
-def get_llm_client(provider: str, api_key: Optional[str] = None):
+def get_llm_client(provider, api_key=None, user=None, db=None):
     """
-    Factory function to create an LLM client based on provider
+    Получить клиент для указанного провайдера LLM.
     
-    Args:
-        provider: The LLM provider (openai, anthropic, mistral, google)
-        api_key: Optional API key to override settings
+    Приоритет API ключей:
+    1. Явно переданный ключ
+    2. Ключ из настроек пользователя
+    3. Ключ из глобальных настроек приложения
+    """
+    if not provider:
+        return None
+    
+    # Попытка получить API ключ из настроек пользователя, если передан пользователь и db
+    user_api_key = None
+    if user and db:
+        from app.db.models.user_settings import UserSettings
         
-    Returns:
-        An LLM client instance
-    """
-    clients = {
-        "openai": OpenAIClient,
-        "anthropic": AnthropicClient,
-        "mistral": MistralClient,
-        "google": GoogleAIClient,
-    }
+        user_settings = db.query(UserSettings).filter(UserSettings.user_id == user.id).first()
+        if user_settings:
+            if provider == "openai":
+                user_api_key = user_settings.openai_key
+            elif provider == "anthropic":
+                user_api_key = user_settings.anthropic_key
+            elif provider == "mistral":
+                user_api_key = user_settings.mistral_key
+            elif provider == "google":
+                user_api_key = user_settings.google_key
+            elif provider == "cohere":
+                user_api_key = user_settings.cohere_key
     
-    client_class = clients.get(provider.lower())
-    if not client_class:
-        raise ValueError(f"Unsupported provider: {provider}")
+    # Используем ключ в следующем порядке: явно переданный -> настройки пользователя -> глобальные настройки
+    actual_api_key = api_key or user_api_key
     
-    return client_class(api_key) 
+    provider = provider.lower()
+    
+    if provider == "openai":
+        return OpenAIClient(api_key=actual_api_key)
+    elif provider == "anthropic":
+        return AnthropicClient(api_key=actual_api_key)
+    elif provider == "mistral":
+        return MistralClient(api_key=actual_api_key)
+    elif provider == "google" or provider == "gemini":
+        return GoogleAIClient(api_key=actual_api_key)
+    elif provider == "cohere":
+        return CohereClient(api_key=actual_api_key)
+    elif provider == "groq":
+        return GroqClient(api_key=actual_api_key)
+    else:
+        logging.warning(f"Неизвестный провайдер LLM: {provider}")
+        return None 

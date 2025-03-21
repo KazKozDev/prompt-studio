@@ -15,6 +15,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import GroupIcon from '@mui/icons-material/Group';
 import SpeedIcon from '@mui/icons-material/Speed';
 import PsychologyIcon from '@mui/icons-material/Psychology';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const drawerWidth = 240;
 
@@ -32,6 +33,7 @@ const mainMenuItems = [
 const advancedMenuItems = [
   { text: 'Taxonomy', icon: <CategoryIcon />, path: '/taxonomy' },
   { text: 'Learning', icon: <SchoolIcon />, path: '/learning' },
+  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
 const Sidebar: React.FC = () => {

@@ -6,7 +6,8 @@ from app.api.endpoints import (
     testing,
     templates,
     analytics,
-    documents
+    documents,
+    user
 )
 
 api_router = APIRouter()
@@ -15,4 +16,5 @@ api_router.include_router(prompts.router, prefix="/prompts", tags=["prompts"])
 api_router.include_router(testing.router, prefix="/tests", tags=["testing"])
 api_router.include_router(templates.router, prefix="/templates", tags=["templates"])
 api_router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
-api_router.include_router(documents.router, prefix="/documents", tags=["documents"]) 
+api_router.include_router(documents.router, prefix="/documents", tags=["documents"])
+api_router.include_router(user.router, prefix="/user", tags=["user"]) 

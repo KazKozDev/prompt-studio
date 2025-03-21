@@ -17,6 +17,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Documents from './pages/Documents';
 import TaxonomyPage from './pages/TaxonomyPage';
+import Settings from './pages/Settings';
 
 // Новые страницы
 import AdvancedTestingFramework from './components/test/AdvancedTestingFramework';
@@ -232,6 +233,11 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 } />
                 <Route path="/taxonomy" element={<TaxonomyPage />} />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
                 <Route path="/collaborative" element={
                   <ProtectedRoute>
                     <CollaborativeWorkflow />
