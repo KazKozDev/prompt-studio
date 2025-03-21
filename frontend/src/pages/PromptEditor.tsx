@@ -669,7 +669,7 @@ const PromptEditor: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h5" gutterBottom>
         {id ? 'Edit Prompt' : 'Create New Prompt'}
       </Typography>
       
