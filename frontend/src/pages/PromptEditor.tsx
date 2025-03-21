@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Box, Typography, Paper, TextField, Button, Grid, Card, CardContent, 
   IconButton, MenuItem, Select, FormControl, InputLabel, CircularProgress, 
-  Alert, Divider, Chip, Tabs, Tab, Accordion, AccordionSummary, AccordionDetails 
+  Alert, Divider, Chip, Tabs, Tab, Accordion, AccordionSummary, AccordionDetails,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
@@ -19,17 +20,18 @@ import ImageIcon from '@mui/icons-material/Image';
 import MicIcon from '@mui/icons-material/Mic';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ViewListIcon from '@mui/icons-material/ViewList';
+import SearchIcon from '@mui/icons-material/Search';
 import axios from 'axios';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import RagSelector from '../components/prompt/RagSelector';
 
-// Интерфейс для элемента модальности
+// Interface for modality element
 interface ModalityElement {
   type: string;
   [key: string]: any;
 }
 
-// Интерфейс для данных промпта
+// Interface for prompt data
 interface PromptData {
   name: string;
   description: string;
@@ -37,7 +39,7 @@ interface PromptData {
   template_id: number | null;
 }
 
-// Интерфейс для данных оптимизации
+// Interface for optimization data
 interface OptimizationResult {
   prompt_id: number;
   prompt_name: string;
@@ -50,7 +52,7 @@ interface OptimizationResult {
   };
 }
 
-// Интерфейс для данных альтернатив
+// Interface for alternatives data
 interface AlternativesResult {
   prompt_id: number;
   prompt_name: string;
@@ -68,17 +70,22 @@ interface AlternativesResult {
   };
 }
 
-// Расширенный интерфейс для Prompt с полем versions
+// Extended interface for Prompt with versions field
 interface ExtendedPrompt extends Prompt {
   versions?: any[];
   version?: any;
 }
 
-// Интерфейс для данных провайдера
+// Interface for provider data
 interface Provider {
   id: string;
   name: string;
   models: string[];
+}
+
+// Interface for editor view settings
+interface EditorViewSettings {
+  mode: 'visual' | 'classic';
 }
 
 // Modality types
@@ -94,11 +101,6 @@ const TEXT_ROLES = [
   { value: 'user', label: 'User' },
   { value: 'assistant', label: 'Assistant' }
 ];
-
-// Интерфейс для настроек вида редактора
-interface EditorViewSettings {
-  mode: 'visual' | 'classic';
-}
 
 const PromptEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -142,7 +144,13 @@ const PromptEditor: React.FC = () => {
   const [generationError, setGenerationError] = useState<string | null>(null);
   
   const [ragContext, setRagContext] = useState<string>('');
+  const [ragSearchOpen, setRagSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
   
+  const [tokenCounts, setTokenCounts] = useState<{ [key: number]: number }>({});
+
   // Fetch providers and models
   useEffect(() => {
     const fetchProviders = async () => {
@@ -153,11 +161,11 @@ const PromptEditor: React.FC = () => {
         if (response.data && response.data.providers) {
           setProviders(response.data.providers);
           
-          // Установим доступные модели для выбранного провайдера
+          // Set available models for the selected provider
           const selectedProvider = response.data.providers.find((p: Provider) => p.id === testProvider);
           if (selectedProvider) {
             setAvailableModels(selectedProvider.models);
-            // Установим модель по умолчанию, если она еще не выбрана
+            // Set default model if not selected yet
             if (!testModel && selectedProvider.models.length > 0) {
               setTestModel(selectedProvider.models[0]);
             }
@@ -222,6 +230,27 @@ const PromptEditor: React.FC = () => {
     });
   };
 
+  // Function to count tokens
+  const countTokens = async (text: string, index: number) => {
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/prompts/count-tokens`,
+        { text },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      setTokenCounts(prev => ({
+        ...prev,
+        [index]: response.data.token_count
+      }));
+    } catch (error) {
+      console.error('Error counting tokens:', error);
+    }
+  };
+
   // Handle modality content changes
   const handleModalityChange = (index: number, field: string, value: any) => {
     const updatedContent = [...promptData.content];
@@ -233,6 +262,11 @@ const PromptEditor: React.FC = () => {
       ...promptData,
       content: updatedContent
     });
+
+    // Count tokens for text content
+    if (field === 'content' && updatedContent[index].type === 'text') {
+      countTokens(value, index);
+    }
   };
 
   // Add a new modality element
@@ -300,7 +334,7 @@ const PromptEditor: React.FC = () => {
     if (id) {
       const testVariables = testParameters;
       if (ragContext) {
-        // Добавляем контекст как параметр модели, если он существует
+        // Add context as a model parameter if it exists
         if (typeof testVariables === 'object') {
           (testVariables as any).context = ragContext;
         }
@@ -310,7 +344,7 @@ const PromptEditor: React.FC = () => {
         promptId: parseInt(id),
         provider: testProvider,
         model: testModel,
-        parameters: testVariables  // Используем оригинальное имя параметра
+        parameters: testVariables  // Use original parameter name
       }));
     }
   };
@@ -406,14 +440,14 @@ const PromptEditor: React.FC = () => {
     }
   };
 
-  // Обработчик переключения режима редактора
+  // Handle editor mode switch
   const handleViewModeChange = () => {
     setEditorView({
       mode: editorView.mode === 'classic' ? 'visual' : 'classic'
     });
   };
   
-  // Обработчик перетаскивания элементов (drag-and-drop)
+  // Handle drag and drop of elements
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
     
@@ -427,7 +461,7 @@ const PromptEditor: React.FC = () => {
     });
   };
 
-  // Компонент визуального редактора промптов
+  // Visual prompt editor component
   const VisualPromptEditor = () => {
     return (
       <Box sx={{ mt: 2 }}>
@@ -527,7 +561,7 @@ const PromptEditor: React.FC = () => {
     );
   };
 
-  // Функция для оптимизации промпта
+  // Function to optimize prompt
   const handleOptimizePrompt = async () => {
     if (!currentPrompt?.id) return;
     
@@ -561,7 +595,7 @@ const PromptEditor: React.FC = () => {
     }
   };
   
-  // Функция для генерации альтернативных версий промпта
+  // Function to generate alternative prompt versions
   const handleGenerateAlternatives = async () => {
     if (!currentPrompt?.id) return;
     
@@ -597,9 +631,40 @@ const PromptEditor: React.FC = () => {
     }
   };
 
-  // Функция для обработки изменений контекста из RAG
+  // Function to handle RAG context changes
   const handleRagContextChange = (context: string) => {
     setRagContext(context);
+  };
+
+  // Function to handle RAG search
+  const handleRagSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setSearching(true);
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/rag/search`,
+        { query: searchQuery },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      setSearchResults(response.data.results || []);
+    } catch (error) {
+      console.error('Error searching documents:', error);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // Function to handle selecting search result
+  const handleSelectResult = (result: any) => {
+    handleRagContextChange(result.content);
+    setRagSearchOpen(false);
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
   return (
@@ -615,20 +680,36 @@ const PromptEditor: React.FC = () => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
               label="Prompt Name"
               name="name"
               value={promptData.name}
               onChange={handleInputChange}
               required
+              sx={{
+                '& .MuiInputBase-root': {
+                  alignItems: 'flex-start'
+                }
+              }}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
               label="Description"
               name="description"
               value={promptData.description}
               onChange={handleInputChange}
+              sx={{
+                '& .MuiInputBase-root': {
+                  alignItems: 'flex-start'
+                }
+              }}
             />
           </Grid>
         </Grid>
@@ -637,125 +718,286 @@ const PromptEditor: React.FC = () => {
       <Box sx={{ mb: 3 }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="Editor" />
-          <Tab label="Test" />
+          <Tab label="RUN" />
           {id && <Tab label="Versions" />}
         </Tabs>
       </Box>
       
       {tabValue === 0 && (
         <>
-          {/* Отображаем визуальный или классический редактор в зависимости от режима */}
           {editorView.mode === 'visual' ? (
             <VisualPromptEditor />
           ) : (
             <Box sx={{ mt: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Prompt Content</Typography>
-                <Button 
-                  variant="outlined" 
-                  startIcon={<ViewModuleIcon />}
-                  onClick={handleViewModeChange}
-                >
-                  Switch to Visual Mode
-                </Button>
-              </Box>
-              
-              <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-                {MODALITY_TYPES.map((type) => (
-                  <Button
-                    key={type.value}
-                    variant="outlined"
-                    startIcon={<AddIcon />}
-                    onClick={() => addModalityElement(type.value)}
-                  >
-                    Add {type.label}
-                  </Button>
-                ))}
-              </Box>
-              
+              <Paper sx={{ p: 3, mb: 3 }}>
+                {/* Block Management Section */}
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500 }}>
+                  Add new prompt block:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                  {MODALITY_TYPES.map((type) => (
+                    <Button
+                      key={type.value}
+                      variant="outlined"
+                      startIcon={
+                        type.value === 'text' ? <TextFieldsIcon /> :
+                        type.value === 'image' ? <ImageIcon /> :
+                        <MicIcon />
+                      }
+                      onClick={() => addModalityElement(type.value)}
+                      sx={{ minWidth: '120px' }}
+                    >
+                      Add {type.label}
+                    </Button>
+                  ))}
+                </Box>
+              </Paper>
+
+              {/* Prompt Blocks */}
               {promptData.content.map((element, index) => (
-                <Paper key={index} sx={{ p: 2, mb: 2, position: 'relative' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                    <FormControl size="small" sx={{ minWidth: 150 }}>
-                      <InputLabel>Modify Type</InputLabel>
-                      <Select
-                        value={element.type}
-                        label="Modify Type"
-                        onChange={(e) => handleModalityChange(index, 'type', e.target.value)}
-                      >
-                        {MODALITY_TYPES.map((type) => (
-                          <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    {element.type === 'text' && (
+                <Paper 
+                  key={index} 
+                  sx={{ 
+                    p: 3, 
+                    mb: 2, 
+                    position: 'relative',
+                    borderLeft: '4px solid',
+                    borderColor: element.type === 'text' 
+                      ? 'primary.main'
+                      : element.type === 'image' 
+                      ? 'success.main'
+                      : 'secondary.main'
+                  }}
+                >
+                  {/* Block Configuration Area */}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 2,
+                    mb: 2,
+                    p: 2,
+                    bgcolor: 'grey.50',
+                    borderRadius: 1
+                  }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                      Current block configuration:
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                       <FormControl size="small" sx={{ minWidth: 150 }}>
-                        <InputLabel>Role</InputLabel>
+                        <InputLabel>Type</InputLabel>
                         <Select
-                          value={element.role || 'user'}
-                          onChange={(e) => handleModalityChange(index, 'role', e.target.value)}
-                          label="Role"
+                          value={element.type}
+                          label="Type"
+                          onChange={(e) => handleModalityChange(index, 'type', e.target.value)}
                         >
-                          {TEXT_ROLES.map(role => (
-                            <MenuItem key={role.value} value={role.value}>
-                              {role.label}
-                            </MenuItem>
+                          {MODALITY_TYPES.map((type) => (
+                            <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
                           ))}
                         </Select>
                       </FormControl>
-                    )}
+                      
+                      {element.type === 'text' && (
+                        <FormControl size="small" sx={{ minWidth: 150 }}>
+                          <InputLabel>Role</InputLabel>
+                          <Select
+                            value={element.role || 'user'}
+                            onChange={(e) => handleModalityChange(index, 'role', e.target.value)}
+                            label="Role"
+                          >
+                            {TEXT_ROLES.map(role => (
+                              <MenuItem key={role.value} value={role.value}>
+                                {role.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+
+                      {element.type === 'text' && (
+                        <>
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            size="small"
+                            startIcon={<ViewModuleIcon />}
+                            onClick={handleOptimizePrompt}
+                            disabled={!currentPrompt?.id || optimizing}
+                            sx={{ 
+                              height: '40px',
+                              minWidth: '150px'
+                            }}
+                          >
+                            {optimizing ? <CircularProgress size={20} /> : 'Optimize Prompt'}
+                          </Button>
+                          
+                          <Button
+                            variant="outlined"
+                            color="secondary"
+                            size="small"
+                            startIcon={<ViewListIcon />}
+                            onClick={handleGenerateAlternatives}
+                            disabled={!currentPrompt?.id || generating}
+                            sx={{ 
+                              height: '40px',
+                              minWidth: '150px'
+                            }}
+                          >
+                            {generating ? <CircularProgress size={20} /> : 'Generate Alternatives'}
+                          </Button>
+                        </>
+                      )}
+
+                      <Button
+                        variant="outlined"
+                        color="info"
+                        size="small"
+                        startIcon={<SearchIcon />}
+                        onClick={() => setRagSearchOpen(true)}
+                        sx={{ 
+                          height: '40px',
+                          minWidth: '150px'
+                        }}
+                      >
+                        RAG Search
+                      </Button>
+                      
+                      <Box sx={{ flexGrow: 1 }} />
+                      
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => removeModalityElement(index)}
+                        sx={{ 
+                          bgcolor: 'error.lighter',
+                          '&:hover': {
+                            bgcolor: 'error.light',
+                          }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
+
+                  {/* Content Editing Area */}
+                  {element.type === 'text' ? (
                     <TextField
                       fullWidth
                       multiline
                       minRows={4}
                       maxRows={8}
-                      value={element.type === 'text' ? element.content : ''}
+                      value={element.content || ''}
                       onChange={(e) => handleModalityChange(index, 'content', e.target.value)}
                       placeholder="Enter content..."
                       size="small"
                       sx={{
                         '& .MuiInputBase-root': {
                           minHeight: '120px',
-                          alignItems: 'flex-start'
+                          alignItems: 'flex-start',
+                          bgcolor: 'background.paper'
                         }
                       }}
+                      helperText={
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          <Typography variant="caption">
+                            {`${element.content?.length || 0} characters`}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            •
+                          </Typography>
+                          <Typography variant="caption">
+                            {`${tokenCounts[index] || 0} tokens`}
+                          </Typography>
+                        </Box>
+                      }
                     />
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => removeModalityElement(index)}
-                      sx={{ mt: 0.5 }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
+                  ) : element.type === 'image' ? (
+                    <Box sx={{ mt: 2 }}>
+                      <TextField
+                        fullWidth
+                        label="Image URL"
+                        value={element.url || ''}
+                        onChange={(e) => handleModalityChange(index, 'url', e.target.value)}
+                        sx={{ mb: 2 }}
+                      />
+                      <TextField
+                        fullWidth
+                        label="Alt Text"
+                        value={element.alt_text || ''}
+                        onChange={(e) => handleModalityChange(index, 'alt_text', e.target.value)}
+                      />
+                      {element.url && (
+                        <Box sx={{ mt: 2, maxWidth: '300px' }}>
+                          <img 
+                            src={element.url} 
+                            alt={element.alt_text || 'Preview'} 
+                            style={{ 
+                              width: '100%', 
+                              height: 'auto', 
+                              borderRadius: '4px' 
+                            }} 
+                          />
+                        </Box>
+                      )}
+                    </Box>
+                  ) : (
+                    <Box sx={{ mt: 2 }}>
+                      <TextField
+                        fullWidth
+                        label="Audio URL"
+                        value={element.url || ''}
+                        onChange={(e) => handleModalityChange(index, 'url', e.target.value)}
+                        sx={{ mb: 2 }}
+                      />
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Duration (seconds)"
+                        value={element.duration || 0}
+                        onChange={(e) => handleModalityChange(index, 'duration', parseFloat(e.target.value))}
+                      />
+                      {element.url && (
+                        <Box sx={{ mt: 2 }}>
+                          <audio 
+                            controls 
+                            src={element.url}
+                            style={{ width: '100%' }}
+                          >
+                            Your browser does not support the audio element.
+                          </audio>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
                 </Paper>
               ))}
+
+              {/* Action Buttons */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+                <Button 
+                  variant="contained" 
+                  startIcon={<SaveIcon />}
+                  onClick={savePrompt}
+                  disabled={loading || !promptData.name}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Save Prompt'}
+                </Button>
+                
+                {id && (
+                  <Button 
+                    variant="outlined" 
+                    color="error"
+                    startIcon={<DeleteIcon />}
+                    onClick={handleDeletePrompt}
+                    disabled={loading}
+                  >
+                    Delete Prompt
+                  </Button>
+                )}
+              </Box>
             </Box>
           )}
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-            <Button 
-              variant="contained" 
-              startIcon={<SaveIcon />}
-              onClick={savePrompt}
-              disabled={loading || !promptData.name}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Save Prompt'}
-            </Button>
-            
-            {id && (
-              <Button 
-                variant="outlined" 
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={handleDeletePrompt}
-                disabled={loading}
-              >
-                Delete
-              </Button>
-            )}
-          </Box>
         </>
       )}
       
@@ -886,7 +1128,6 @@ const PromptEditor: React.FC = () => {
             )}
           </Box>
           
-          {/* Добавляем кнопки для оптимизации и генерации альтернатив рядом с кнопкой тестирования */}
           <Box sx={{ mt: 2, mb: 2, display: 'flex', gap: 2 }}>
             <Button
               variant="outlined"
@@ -895,7 +1136,7 @@ const PromptEditor: React.FC = () => {
               onClick={handleOptimizePrompt}
               disabled={!currentPrompt?.id || optimizing}
             >
-              {optimizing ? <CircularProgress size={24} /> : 'Оптимизировать промпт'}
+              {optimizing ? <CircularProgress size={24} /> : 'Optimize Prompt'}
             </Button>
             
             <Button
@@ -905,11 +1146,10 @@ const PromptEditor: React.FC = () => {
               onClick={handleGenerateAlternatives}
               disabled={!currentPrompt?.id || generating}
             >
-              {generating ? <CircularProgress size={24} /> : 'Создать альтернативы'}
+              {generating ? <CircularProgress size={24} /> : 'Generate Alternatives'}
             </Button>
           </Box>
           
-          {/* Отображение результатов оптимизации */}
           {optimizationError && (
             <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
               {optimizationError}
@@ -919,7 +1159,7 @@ const PromptEditor: React.FC = () => {
           {optimizationResult && (
             <Accordion sx={{ mt: 2, mb: 2 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6">Рекомендации по оптимизации</Typography>
+                <Typography variant="h6">Optimization Recommendations</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Box sx={{ whiteSpace: 'pre-wrap' }}>
@@ -927,16 +1167,15 @@ const PromptEditor: React.FC = () => {
                 </Box>
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2">
-                    Время выполнения: {optimizationResult.metrics.execution_time.toFixed(2)}s | 
-                    Модель: {optimizationResult.metrics.provider}/{optimizationResult.metrics.model} | 
-                    Токены: {optimizationResult.metrics.usage?.total_tokens || 'N/A'}
+                    Execution Time: {optimizationResult.metrics.execution_time.toFixed(2)}s | 
+                    Model: {optimizationResult.metrics.provider}/{optimizationResult.metrics.model} | 
+                    Tokens: {optimizationResult.metrics.usage?.total_tokens || 'N/A'}
                   </Typography>
                 </Box>
               </AccordionDetails>
             </Accordion>
           )}
           
-          {/* Отображение результатов генерации альтернатив */}
           {generationError && (
             <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
               {generationError}
@@ -946,7 +1185,7 @@ const PromptEditor: React.FC = () => {
           {alternativesResult && (
             <Accordion sx={{ mt: 2, mb: 2 }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6">Альтернативные версии промпта</Typography>
+                <Typography variant="h6">Alternative Prompt Versions</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Box sx={{ whiteSpace: 'pre-wrap' }}>
@@ -954,18 +1193,18 @@ const PromptEditor: React.FC = () => {
                 </Box>
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2">
-                    Время выполнения: {alternativesResult.metrics.execution_time.toFixed(2)}s | 
-                    Модель: {alternativesResult.metrics.provider}/{alternativesResult.metrics.model} | 
-                    Токены: {alternativesResult.metrics.usage?.total_tokens || 'N/A'}
+                    Execution Time: {alternativesResult.metrics.execution_time.toFixed(2)}s | 
+                    Model: {alternativesResult.metrics.provider}/{alternativesResult.metrics.model} | 
+                    Tokens: {alternativesResult.metrics.usage?.total_tokens || 'N/A'}
                   </Typography>
                 </Box>
                 {alternativesResult.saved_versions.length > 0 && (
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle1">Сохраненные версии:</Typography>
+                    <Typography variant="subtitle1">Saved Versions:</Typography>
                     {alternativesResult.saved_versions.map((version) => (
                       <Chip 
                         key={version.version_id}
-                        label={`Версия ${version.version_number}: ${version.title}`}
+                        label={`Version ${version.version_number}: ${version.title}`}
                         color="primary"
                         sx={{ m: 0.5 }}
                       />
@@ -1014,27 +1253,79 @@ const PromptEditor: React.FC = () => {
           )}
         </Paper>
       )}
-      
-      {/* Добавляем RagSelector перед секцией с кнопками управления */}
-      <RagSelector onContextChange={handleRagContextChange} />
-      
-      {/* Секция с кнопками управления */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Box>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<SaveIcon />}
-            onClick={savePrompt}
-            disabled={promptData.name.trim() === ''}
-            sx={{ mr: 1 }}
-          >
-            {id ? 'Обновить' : 'Создать'}
-          </Button>
+
+      {/* RAG Search Dialog */}
+      <Dialog 
+        open={ragSearchOpen} 
+        onClose={() => setRagSearchOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Search Documents</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 2, mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Search Query"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleRagSearch();
+                }
+              }}
+            />
+          </Box>
           
-          {/* ... остальные кнопки ... */}
-        </Box>
-      </Box>
+          {searching ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : searchResults.length > 0 ? (
+            <Box>
+              {searchResults.map((result, index) => (
+                <Paper 
+                  key={index} 
+                  sx={{ 
+                    p: 2, 
+                    mb: 1, 
+                    cursor: 'pointer',
+                    '&:hover': {
+                      bgcolor: 'action.hover'
+                    }
+                  }}
+                  onClick={() => handleSelectResult(result)}
+                >
+                  <Typography variant="subtitle2" gutterBottom>
+                    {result.title || 'Document Fragment'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {result.content.substring(0, 200)}...
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          ) : searchQuery && !searching && (
+            <Box sx={{ py: 2, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                No results found
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRagSearchOpen(false)}>
+            Cancel
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleRagSearch}
+            disabled={!searchQuery.trim() || searching}
+          >
+            {searching ? <CircularProgress size={24} /> : 'Search'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
