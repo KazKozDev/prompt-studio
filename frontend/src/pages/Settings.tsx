@@ -29,7 +29,7 @@ const Settings: React.FC = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Загрузка настроек при монтировании компонента
+  // Load settings when component mounts
   useEffect(() => {
     fetchSettings();
   }, []);
@@ -37,7 +37,7 @@ const Settings: React.FC = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/user/settings`);
+      const response = await axios.get(`${API_BASE_URL}/api/user/settings`);
       if (response.data) {
         setSettings({
           openai_key: response.data.openai_key || '',
@@ -50,8 +50,8 @@ const Settings: React.FC = () => {
       }
       setError(null);
     } catch (err: any) {
-      console.error('Ошибка при загрузке настроек:', err);
-      setError('Не удалось загрузить настройки. Пожалуйста, попробуйте позже.');
+      console.error('Error loading settings:', err);
+      setError('Failed to load settings. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -68,12 +68,12 @@ const Settings: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.put(`${API_BASE_URL}/user/settings`, settings);
+      await axios.put(`${API_BASE_URL}/api/user/settings`, settings);
       setSaveSuccess(true);
       setError(null);
     } catch (err: any) {
-      console.error('Ошибка при сохранении настроек:', err);
-      setError('Не удалось сохранить настройки. Пожалуйста, попробуйте позже.');
+      console.error('Error saving settings:', err);
+      setError('Failed to save settings. Please try again later.');
     }
   };
 
@@ -84,16 +84,16 @@ const Settings: React.FC = () => {
   return (
     <Box sx={{ maxWidth: 1000, mx: 'auto', mt: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Настройки
+        Settings
       </Typography>
       
       <Card sx={{ mb: 4 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            API Ключи для моделей
+            API Keys for Models
           </Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
-            Введите ваши личные API ключи для различных провайдеров моделей. Эти ключи будут использоваться только для вашей учетной записи.
+            Enter your personal API keys for various model providers. These keys will be used only for your account.
           </Typography>
           
           {error && (
@@ -106,75 +106,75 @@ const Settings: React.FC = () => {
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="OpenAI API ключ"
+                  label="OpenAI API Key"
                   name="openai_key"
                   value={settings.openai_key}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
                   placeholder="sk-..."
-                  helperText="Используется для ChatGPT и GPT-4"
+                  helperText="Used for ChatGPT and GPT-4"
                 />
               </Grid>
               
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Anthropic API ключ"
+                  label="Anthropic API Key"
                   name="anthropic_key"
                   value={settings.anthropic_key}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
                   placeholder="sk-ant-..."
-                  helperText="Используется для Claude моделей"
+                  helperText="Used for Claude models"
                 />
               </Grid>
               
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Mistral API ключ"
+                  label="Mistral API Key"
                   name="mistral_key"
                   value={settings.mistral_key}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
-                  helperText="Используется для Mistral моделей"
+                  helperText="Used for Mistral models"
                 />
               </Grid>
               
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Google AI API ключ"
+                  label="Google AI API Key"
                   name="google_key"
                   value={settings.google_key}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
-                  helperText="Используется для Gemini моделей"
+                  helperText="Used for Gemini models"
                 />
               </Grid>
               
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Cohere API ключ"
+                  label="Cohere API Key"
                   name="cohere_key"
                   value={settings.cohere_key}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
-                  helperText="Используется для Cohere моделей"
+                  helperText="Used for Cohere models"
                 />
               </Grid>
               
               <Grid item xs={12} md={6}>
                 <TextField
-                  label="Groq API ключ"
+                  label="Groq API Key"
                   name="groq_key"
                   value={settings.groq_key}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
-                  helperText="Используется для Groq моделей"
+                  helperText="Used for Groq models"
                 />
               </Grid>
             </Grid>
@@ -186,7 +186,7 @@ const Settings: React.FC = () => {
                 color="primary"
                 disabled={loading}
               >
-                Сохранить
+                Save
               </Button>
             </Box>
           </form>
@@ -200,7 +200,7 @@ const Settings: React.FC = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleCloseSnackbar} severity="success">
-          Настройки успешно сохранены!
+          Settings saved successfully!
         </Alert>
       </Snackbar>
     </Box>

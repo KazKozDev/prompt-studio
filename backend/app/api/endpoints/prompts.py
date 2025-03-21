@@ -16,7 +16,7 @@ from app.utils import logger
 from fastapi import status
 import logging
 from app.schemas.prompt_execution import PromptExecutionSchema
-from app.db.models.prompt_analytics import PromptAnalytics
+from app.db.models.analytics import PromptAnalytics
 
 router = APIRouter()
 
