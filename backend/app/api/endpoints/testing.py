@@ -102,25 +102,6 @@ async def test_prompt(
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
     
-    # Get user settings
-    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
-    if not settings:
-        raise HTTPException(status_code=400, detail="API keys not configured")
-    
-    # Get API key for the selected provider
-    api_key = None
-    if provider == "openai":
-        api_key = settings.openai_key
-    elif provider == "anthropic":
-        api_key = settings.anthropic_key
-    elif provider == "mistral":
-        api_key = settings.mistral_key
-    elif provider == "google":
-        api_key = settings.google_key
-    
-    if not api_key:
-        raise HTTPException(status_code=400, detail=f"API key not configured for {provider}")
-    
     # Log start time for metrics
     start_time = time.time()
     response = {}
@@ -137,7 +118,7 @@ async def test_prompt(
         
         # Get the appropriate client and process prompt
         try:
-            client = get_llm_client(provider, api_key)
+            client = get_llm_client(provider)
             raw_response = client.process_prompt(formatted_content, model, parameters)
             response = client.format_response(raw_response)
         except ValueError as e:

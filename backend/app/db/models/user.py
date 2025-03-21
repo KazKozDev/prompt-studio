@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.db.base import Base
+from app.db.base_class import Base
 
 class User(Base):
     __tablename__ = "users"
@@ -16,9 +16,9 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Use string references to avoid circular dependencies
-    prompts = relationship("Prompt", back_populates="user")
+    prompts = relationship("Prompt", back_populates="user", cascade="all, delete-orphan")
     tests = relationship("Test", back_populates="user", cascade="all, delete-orphan")
-    templates = relationship("Template", back_populates="user")
+    templates = relationship("Template", back_populates="user", cascade="all, delete-orphan")
     
     # Связи с документами и коллекциями для системы RAG
     documents = relationship("Document", back_populates="user", cascade="all, delete-orphan")
@@ -27,4 +27,4 @@ class User(Base):
     settings = relationship("UserSettings", back_populates="user", uselist=False)
 
     # Связи с другими таблицами
-    analytics = relationship("PromptAnalytics", back_populates="user")
+    prompt_analytics = relationship("PromptAnalytics", back_populates="user")

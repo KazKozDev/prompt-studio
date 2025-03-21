@@ -75,9 +75,6 @@ class OpenAIClient(LLMClientBase):
     
     def get_available_models(self):
         """Get available OpenAI models"""
-        if not self.api_key:
-            return []
-            
         if not self.client:
             return []
         
@@ -151,9 +148,6 @@ class AnthropicClient(LLMClientBase):
     
     def get_available_models(self):
         """Get available Anthropic models"""
-        if not self.api_key:
-            return []
-            
         return [
             "claude-3-5-sonnet-20240620",
             "claude-3-opus-20240229",
@@ -213,9 +207,6 @@ class MistralClient(LLMClientBase):
     
     def get_available_models(self):
         """Get available Mistral models"""
-        if not self.api_key:
-            return []
-            
         return [
             "mistral-large-latest",
             "mistral-small-latest",
@@ -259,18 +250,16 @@ class GoogleAIClient(LLMClientBase):
                 "top_p": parameters.get("top_p", 0.95),
             }
             
-            # Initialize model
-            model = self.client.GenerativeModel(model_name=model)
+            # Create model and generate response
+            generation_config = self.client.types.GenerationConfig(**model_config)
+            model_instance = self.client.GenerativeModel(model_name=model, generation_config=generation_config)
             
-            # Create chat
-            chat = model.start_chat(history=[])
-            
-            # Add system message if present
             if system_message:
-                chat.send_message(system_message)
+                chat = model_instance.start_chat(system_instruction=system_message)
+                response = chat.send_message(prompt)
+            else:
+                response = model_instance.generate_content(prompt)
             
-            # Send user message and get response
-            response = chat.send_message(prompt)
             return response
         except Exception as e:
             logging.error(f"Error calling Google AI API: {str(e)}")
@@ -278,19 +267,28 @@ class GoogleAIClient(LLMClientBase):
     
     def format_response(self, response):
         """Format Google AI response to standardized format"""
+        # Handle different response formats from Google AI
+        content = response.text if hasattr(response, 'text') else str(response)
+        
+        # Extract usage information if available
+        usage = {
+            "input_tokens": getattr(response, 'usage', {}).get('prompt_tokens', 0) or 0,
+            "output_tokens": getattr(response, 'usage', {}).get('completion_tokens', 0) or 0,
+            "total_tokens": getattr(response, 'usage', {}).get('total_tokens', 0) or 0
+        }
+        
         return {
-            "content": response.text,
-            "usage": {}  # Google AI doesn't provide token usage info
+            "content": content,
+            "usage": usage
         }
     
     def get_available_models(self):
         """Get available Google AI models"""
-        if not self.api_key:
-            return []
-            
         return [
-            "gemini-pro",
-            "gemini-pro-vision"
+            "gemini-1.5-pro",
+            "gemini-1.5-flash",
+            "gemini-1.0-pro",
+            "gemini-1.0-pro-vision"
         ]
 
 # Factory to create appropriate client instance

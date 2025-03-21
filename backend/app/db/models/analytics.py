@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, JSO
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.db.base import Base
+from app.db.base_class import Base
 
 class PromptAnalytics(Base):
     __tablename__ = "prompt_analytics"
@@ -11,13 +11,13 @@ class PromptAnalytics(Base):
     date = Column(DateTime(timezone=True), server_default=func.now())
     metrics = Column(JSON, nullable=False)  # Various usage and effectiveness metrics
     
-    # User relationship
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    user = relationship("User", back_populates="analytics")
-    
     # Prompt relationship
     prompt_id = Column(Integer, ForeignKey("prompts.id"), nullable=False)
     prompt = relationship("Prompt", back_populates="analytics")
+    
+    # User relationship
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    user = relationship("User", back_populates="prompt_analytics")
     
     # Provider info
     provider = Column(String, nullable=True)

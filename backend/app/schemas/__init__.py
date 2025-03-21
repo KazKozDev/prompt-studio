@@ -14,4 +14,3 @@ from .rag import (
     DocumentCollectionBase, DocumentCollectionCreate, DocumentCollectionUpdate, DocumentCollection,
     SearchQuery, SearchResults, RagTestCreate
 )
-from .user_settings import UserSettings, UserSettingsCreate, UserSettingsUpdate
