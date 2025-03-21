@@ -16,6 +16,8 @@ class UserSettings(Base):
     anthropic_key = Column(String, nullable=True)
     mistral_key = Column(String, nullable=True)
     google_key = Column(String, nullable=True)
+    cohere_key = Column(String, nullable=True)
+    groq_key = Column(String, nullable=True)
     
     # Settings
     theme = Column(String, default="light")
