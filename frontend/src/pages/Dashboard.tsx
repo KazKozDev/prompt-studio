@@ -118,73 +118,78 @@ const Dashboard: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>Dashboard</Typography>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" component="h1" gutterBottom>
+          Dashboard
+        </Typography>
+        
+        {/* Temporary and dismissible announcement banner */}
+        {showAnnouncement && (
+          <Paper
+            sx={{
+              p: 3,
+              mt: 4,
+              background: 'linear-gradient(to right, #3f51b5, #5c6bc0)',
+              color: 'white',
+              position: 'relative',
+              borderRadius: 1,
+            }}
+          >
+            <IconButton 
+              sx={{ 
+                position: 'absolute', 
+                top: 8, 
+                right: 8, 
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)'
+                }
+              }}
+              onClick={handleDismissAnnouncement}
+              aria-label="Dismiss announcement"
+            >
+              <CloseIcon />
+            </IconButton>
+            
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={8}>
+                <Typography variant="h5" gutterBottom>
+                  New advanced features available!
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Enhance your prompt workflow with A/B testing, team collaboration, 
+                  learning resources, and automatic optimization.
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  color="secondary" 
+                  sx={{ color: 'white', borderColor: 'white' }}
+                  onClick={() => document.getElementById('advanced-features')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Learn more
+                </Button>
+              </Grid>
+              <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
+                <Box
+                  component="img"
+                  src="/illustrations/prompt-engineering.svg"
+                  alt="Prompt Engineering"
+                  sx={{ 
+                    maxWidth: '100%', 
+                    height: 140,
+                    filter: 'drop-shadow(0px 0px 8px rgba(255,255,255,0.5))'
+                  }}
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+        )}
+      </Box>
       
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-      
-      {/* Temporary and dismissible announcement banner */}
-      {showAnnouncement && (
-        <Paper
-          sx={{
-            p: 3,
-            mb: 4,
-            background: 'linear-gradient(to right, #3f51b5, #5c6bc0)',
-            color: 'white',
-            position: 'relative',
-          }}
-        >
-          <IconButton 
-            sx={{ 
-              position: 'absolute', 
-              top: 8, 
-              right: 8, 
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.2)'
-              }
-            }}
-            onClick={handleDismissAnnouncement}
-            aria-label="Dismiss announcement"
-          >
-            <CloseIcon />
-          </IconButton>
-          
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Typography variant="h5" gutterBottom>
-                New advanced features available!
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Enhance your prompt workflow with A/B testing, team collaboration, 
-                learning resources, and automatic optimization.
-              </Typography>
-              <Button 
-                variant="contained" 
-                color="secondary" 
-                sx={{ color: 'white', borderColor: 'white' }}
-                onClick={() => document.getElementById('advanced-features')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                Learn more
-              </Button>
-            </Grid>
-            <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
-              <Box
-                component="img"
-                src="/illustrations/prompt-engineering.svg"
-                alt="Prompt Engineering"
-                sx={{ 
-                  maxWidth: '100%', 
-                  height: 140,
-                  filter: 'drop-shadow(0px 0px 8px rgba(255,255,255,0.5))'
-                }}
-                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </Grid>
-          </Grid>
-        </Paper>
-      )}
       
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>

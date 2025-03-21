@@ -236,39 +236,12 @@ const TemplateList: React.FC = () => {
                     Use Template
                   </Button>
                   
-                  {tabValue === 0 && (
-                    <>
-                      <Tooltip title="Edit Template">
-                        <IconButton 
-                          size="small"
-                          onClick={() => {
-                            setNewTemplate({
-                              ...template
-                            });
-                            setDialogOpen(true);
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      
-                      <Tooltip title="Delete Template">
-                        <IconButton 
-                          size="small"
-                          color="error"
-                          onClick={() => handleDeleteTemplate(template.id)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </>
-                  )}
-                  
-                  {tabValue === 1 && (
+                  <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                     <Tooltip title="Copy Template">
                       <IconButton 
                         size="small"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setNewTemplate({
                             name: `Copy of ${template.name}`,
                             description: template.description || '',
@@ -291,7 +264,40 @@ const TemplateList: React.FC = () => {
                         <ContentCopyIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                  )}
+                    {tabValue === 0 && (
+                      <>
+                        <Tooltip title="Edit Template">
+                          <IconButton 
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNewTemplate({
+                                id: template.id,
+                                name: template.name,
+                                description: template.description || '',
+                                structure: template.structure,
+                                is_public: template.is_public
+                              });
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete Template">
+                          <IconButton 
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTemplate(template.id);
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" color="error" />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
+                  </Box>
                 </CardActions>
               </Card>
             </Grid>
