@@ -42,7 +42,7 @@ function TabPanel(props: TabPanelProps) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ pt: 3 }}>
+        <Box>
           {children}
         </Box>
       )}
@@ -784,7 +784,7 @@ const TestList: React.FC = () => {
 
       <TabPanel value={tabValue} index={0}>
         {tabValue === 0 && (
-          <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+          <Paper sx={{ p: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
             <Typography variant="h5" gutterBottom>
               Standard A/B Testing
             </Typography>
@@ -795,12 +795,14 @@ const TestList: React.FC = () => {
             </Typography>
           </Paper>
         )}
-        <StandardTestingComponent />
+        <Box sx={{ pt: 3 }}>
+          <StandardTestingComponent />
+        </Box>
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
         {tabValue === 1 && (
-          <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+          <Paper sx={{ p: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
             <Typography variant="h5" gutterBottom>
               Advanced Testing Framework
             </Typography>
@@ -811,7 +813,9 @@ const TestList: React.FC = () => {
             </Typography>
           </Paper>
         )}
-        <AdvancedTestingFramework />
+        <Box sx={{ pt: 3 }}>
+          <AdvancedTestingFramework />
+        </Box>
       </TabPanel>
     </Box>
   );
