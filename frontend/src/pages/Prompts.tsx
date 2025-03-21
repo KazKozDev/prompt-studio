@@ -118,7 +118,12 @@ const Prompts: React.FC = () => {
                 </TableHead>
                 <TableBody>
                   {filteredPrompts?.map((prompt, index) => (
-                    <TableRow key={prompt.id} hover>
+                    <TableRow 
+                      key={prompt.id} 
+                      hover
+                      onClick={() => handleEditPrompt(prompt.id)}
+                      sx={{ cursor: 'pointer' }}
+                    >
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>{prompt.name}</TableCell>
                       <TableCell>{prompt.description || '-'}</TableCell>
@@ -136,19 +141,12 @@ const Prompts: React.FC = () => {
                       </TableCell>
                       <TableCell align="right">
                         <IconButton 
-                          color="primary" 
-                          onClick={() => handleEditPrompt(prompt.id)}
-                          title="Edit prompt"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton 
                           color="error" 
                           onClick={(e) => {
                             e.stopPropagation(); // Предотвращаем всплытие события
                             handleDeletePrompt(prompt.id);
                           }}
-                          title="Удалить промпт"
+                          title="Delete prompt"
                         >
                           <DeleteIcon />
                         </IconButton>
