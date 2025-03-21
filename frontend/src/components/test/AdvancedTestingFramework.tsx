@@ -75,12 +75,12 @@ const VariantComparisonTable: React.FC<{ test: AdvancedTest }> = ({ test }) => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Вариант</TableCell>
-            <TableCell align="right">Число запусков</TableCell>
-            <TableCell align="right">Частота успеха</TableCell>
-            <TableCell align="right">Ср. время ответа (мс)</TableCell>
-            <TableCell align="right">Ср. использование токенов</TableCell>
-            <TableCell align="right">Стат. значимость</TableCell>
+            <TableCell>Variant</TableCell>
+            <TableCell align="right">Total Runs</TableCell>
+            <TableCell align="right">Success Rate</TableCell>
+            <TableCell align="right">Avg Response Time (ms)</TableCell>
+            <TableCell align="right">Avg Token Usage</TableCell>
+            <TableCell align="right">Statistical Significance</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -89,13 +89,13 @@ const VariantComparisonTable: React.FC<{ test: AdvancedTest }> = ({ test }) => {
               <TableCell component="th" scope="row">
                 {variant.name}
                 {variant.id === test.results?.winner && (
-                  <Chip size="small" label="Лучший" color="success" sx={{ ml: 1 }} />
+                  <Chip size="small" label="Best" color="success" sx={{ ml: 1 }} />
                 )}
               </TableCell>
               <TableCell align="right">{variant.results?.total_runs || 0}</TableCell>
-              <TableCell align="right">{variant.results?.success_rate ? `${(variant.results.success_rate * 100).toFixed(1)}%` : 'Н/Д'}</TableCell>
-              <TableCell align="right">{variant.results?.avg_response_time ? `${variant.results.avg_response_time.toFixed(0)}` : 'Н/Д'}</TableCell>
-              <TableCell align="right">{variant.results?.avg_token_count ? variant.results.avg_token_count.toFixed(0) : 'Н/Д'}</TableCell>
+              <TableCell align="right">{variant.results?.success_rate ? `${(variant.results.success_rate * 100).toFixed(1)}%` : 'N/A'}</TableCell>
+              <TableCell align="right">{variant.results?.avg_response_time ? `${variant.results.avg_response_time.toFixed(0)}` : 'N/A'}</TableCell>
+              <TableCell align="right">{variant.results?.avg_token_count ? variant.results.avg_token_count.toFixed(0) : 'N/A'}</TableCell>
               <TableCell align="right">
                 {variant.results?.significance_score ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -107,7 +107,7 @@ const VariantComparisonTable: React.FC<{ test: AdvancedTest }> = ({ test }) => {
                     />
                     {(variant.results.significance_score * 100).toFixed(0)}%
                   </Box>
-                ) : 'Н/Д'}
+                ) : 'N/A'}
               </TableCell>
             </TableRow>
           ))}
@@ -138,15 +138,15 @@ const TestResultsVisualization: React.FC<{ test: AdvancedTest }> = ({ test }) =>
     switch (metric) {
       case 'success_rate':
         value = (variant.results?.success_rate || 0) * 100;
-        label = 'Успешность (%)';
+        label = 'Success Rate (%)';
         break;
       case 'response_time':
         value = variant.results?.avg_response_time || 0;
-        label = 'Время ответа (мс)';
+        label = 'Response Time (ms)';
         break;
       case 'token_usage':
         value = variant.results?.avg_token_count || 0;
-        label = 'Токены';
+        label = 'Tokens';
         break;
       default:
         value = 0;
@@ -165,17 +165,17 @@ const TestResultsVisualization: React.FC<{ test: AdvancedTest }> = ({ test }) =>
     <Box sx={{ mt: 3 }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs value={chartType} onChange={handleChartTypeChange} aria-label="chart type">
-          <Tab value="bar" label="Гистограмма" icon={<BarChartIcon />} />
-          <Tab value="pie" label="Круговая" icon={<PieChart />} />
+          <Tab value="bar" label="Bar Chart" icon={<BarChartIcon />} />
+          <Tab value="pie" label="Pie Chart" icon={<PieChart />} />
         </Tabs>
       </Box>
       
       <FormControl sx={{ mb: 2, minWidth: 200 }}>
-        <InputLabel>Метрика</InputLabel>
-        <Select value={metric} onChange={handleMetricChange} label="Метрика">
-          <MenuItem value="success_rate">Частота успеха</MenuItem>
-          <MenuItem value="response_time">Время отклика</MenuItem>
-          <MenuItem value="token_usage">Использование токенов</MenuItem>
+        <InputLabel>Metric</InputLabel>
+        <Select value={metric} onChange={handleMetricChange} label="Metric">
+          <MenuItem value="success_rate">Success Rate</MenuItem>
+          <MenuItem value="response_time">Response Time</MenuItem>
+          <MenuItem value="token_usage">Token Usage</MenuItem>
         </Select>
       </FormControl>
       
@@ -221,7 +221,7 @@ const TestResultsVisualization: React.FC<{ test: AdvancedTest }> = ({ test }) =>
       {test.results?.statistical_significance && (
         <Alert severity="success" sx={{ mt: 2 }}>
           <Typography variant="body2">
-            Статистическая значимость: Да (p-value: {test.results.p_value?.toFixed(4)}, уровень доверия: {test.results.confidence_level?.toFixed(1)}%)
+            Statistical Significance: Yes (p-value: {test.results.p_value?.toFixed(4)}, confidence level: {test.results.confidence_level?.toFixed(1)}%)
           </Typography>
         </Alert>
       )}
@@ -229,7 +229,7 @@ const TestResultsVisualization: React.FC<{ test: AdvancedTest }> = ({ test }) =>
       {!test.results?.statistical_significance && test.status === 'completed' && (
         <Alert severity="info" sx={{ mt: 2 }}>
           <Typography variant="body2">
-            Статистическая значимость не достигнута. Рекомендуется увеличить количество тестов.
+            Statistical significance not achieved. Consider increasing the number of tests.
           </Typography>
         </Alert>
       )}
@@ -263,8 +263,8 @@ const AdvancedTestingFramework: React.FC = () => {
       significance_threshold: 0.05
     },
     variants: [
-      { id: '1', name: 'Вариант A', content: [] },
-      { id: '2', name: 'Вариант B', content: [] }
+      { id: '1', name: 'Variant A', content: [] },
+      { id: '2', name: 'Variant B', content: [] }
     ]
   });
 
@@ -282,10 +282,10 @@ const AdvancedTestingFramework: React.FC = () => {
       const mockTests: AdvancedTest[] = [
         {
           id: 1,
-          name: 'Тест эффективности промпта для классификации',
-          description: 'Сравнение двух подходов к классификации текста',
+          name: 'Test Efficiency Prompt for Classification',
+          description: 'Comparison of two approaches to text classification',
           prompt_id: 123,
-          prompt_name: 'Классификационный промпт',
+          prompt_name: 'Classification Prompt',
           config: {
             runs_per_variant: 50,
             variants_count: 2,
@@ -302,7 +302,7 @@ const AdvancedTestingFramework: React.FC = () => {
           variants: [
             {
               id: 'v1',
-              name: 'Вариант A',
+              name: 'Variant A',
               content: [],
               results: {
                 total_runs: 50,
@@ -315,7 +315,7 @@ const AdvancedTestingFramework: React.FC = () => {
             },
             {
               id: 'v2',
-              name: 'Вариант B',
+              name: 'Variant B',
               content: [],
               results: {
                 total_runs: 50,
@@ -339,10 +339,10 @@ const AdvancedTestingFramework: React.FC = () => {
         },
         {
           id: 2,
-          name: 'Многовариантный тест промпта для суммаризации',
-          description: 'Сравнение 3 подходов к суммаризации документов',
+          name: 'Multivariant Test for Summarization Prompt',
+          description: 'Comparison of 3 approaches to summarizing documents',
           prompt_id: 456,
-          prompt_name: 'Суммаризационный промпт',
+          prompt_name: 'Summarization Prompt',
           config: {
             runs_per_variant: 30,
             variants_count: 3,
@@ -359,7 +359,7 @@ const AdvancedTestingFramework: React.FC = () => {
           variants: [
             {
               id: 'v1',
-              name: 'Структурированный',
+              name: 'Structured',
               content: [],
               results: {
                 total_runs: 30,
@@ -372,7 +372,7 @@ const AdvancedTestingFramework: React.FC = () => {
             },
             {
               id: 'v2',
-              name: 'Пошаговый',
+              name: 'Step-by-Step',
               content: [],
               results: {
                 total_runs: 30,
@@ -385,7 +385,7 @@ const AdvancedTestingFramework: React.FC = () => {
             },
             {
               id: 'v3',
-              name: 'Краткий',
+              name: 'Brief',
               content: [],
               results: {
                 total_runs: 30,
@@ -411,7 +411,7 @@ const AdvancedTestingFramework: React.FC = () => {
       
       setTests(mockTests);
     } catch (err: any) {
-      setError(err.message || 'Ошибка при загрузке тестов');
+      setError(err.message || 'Error loading tests');
     } finally {
       setLoading(false);
     }
@@ -463,9 +463,9 @@ const AdvancedTestingFramework: React.FC = () => {
                   <Chip 
                     size="small" 
                     label={
-                      test.status === 'completed' ? 'Завершен' : 
-                      test.status === 'running' ? 'Выполняется' : 
-                      test.status === 'draft' ? 'Черновик' : 'Ошибка'
+                      test.status === 'completed' ? 'Completed' : 
+                      test.status === 'running' ? 'Running' : 
+                      test.status === 'draft' ? 'Draft' : 'Error'
                     }
                     color={
                       test.status === 'completed' ? 'success' : 
@@ -482,25 +482,25 @@ const AdvancedTestingFramework: React.FC = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <Typography variant="body2">
-                      <strong>Промпт:</strong> {test.prompt_name}
+                      <strong>Prompt:</strong> {test.prompt_name}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Варианты:</strong> {test.variants.length}
+                      <strong>Variants:</strong> {test.variants.length}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Запусков на вариант:</strong> {test.config.runs_per_variant}
+                      <strong>Runs per variant:</strong> {test.config.runs_per_variant}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Typography variant="body2">
-                      <strong>Создан:</strong> {new Date(test.created_at).toLocaleDateString()}
+                      <strong>Created:</strong> {new Date(test.created_at).toLocaleDateString()}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Обновлен:</strong> {new Date(test.updated_at).toLocaleDateString()}
+                      <strong>Updated:</strong> {new Date(test.updated_at).toLocaleDateString()}
                     </Typography>
                     {test.results?.winner && (
                       <Typography variant="body2">
-                        <strong>Победитель:</strong> {test.variants.find(v => v.id === test.results?.winner)?.name}
+                        <strong>Winner:</strong> {test.variants.find(v => v.id === test.results?.winner)?.name}
                       </Typography>
                     )}
                   </Grid>
@@ -512,7 +512,7 @@ const AdvancedTestingFramework: React.FC = () => {
                   endIcon={<VisibilityIcon />}
                   onClick={() => handleOpenDetails(test)}
                 >
-                  Детали и результаты
+                  Details and Results
                 </Button>
               </Box>
             </Card>
@@ -534,9 +534,9 @@ const AdvancedTestingFramework: React.FC = () => {
               <Chip 
                 size="small" 
                 label={
-                  selectedTest.status === 'completed' ? 'Завершен' : 
-                  selectedTest.status === 'running' ? 'Выполняется' : 
-                  selectedTest.status === 'draft' ? 'Черновик' : 'Ошибка'
+                  selectedTest.status === 'completed' ? 'Completed' : 
+                  selectedTest.status === 'running' ? 'Running' : 
+                  selectedTest.status === 'draft' ? 'Draft' : 'Error'
                 }
                 color={
                   selectedTest.status === 'completed' ? 'success' : 
@@ -552,48 +552,48 @@ const AdvancedTestingFramework: React.FC = () => {
               </Typography>
               
               <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-                Конфигурация теста
+                Test Configuration
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
                   <Typography variant="body2">
-                    <strong>Промпт:</strong> {selectedTest.prompt_name}
+                    <strong>Prompt:</strong> {selectedTest.prompt_name}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Варианты:</strong> {selectedTest.variants.length}
+                    <strong>Variants:</strong> {selectedTest.variants.length}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Запусков на вариант:</strong> {selectedTest.config.runs_per_variant}
+                    <strong>Runs per variant:</strong> {selectedTest.config.runs_per_variant}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Typography variant="body2">
-                    <strong>Целевые модели:</strong> {selectedTest.config.target_models.join(', ')}
+                    <strong>Target Models:</strong> {selectedTest.config.target_models.join(', ')}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Метрики:</strong> {Object.entries(selectedTest.config.metrics)
+                    <strong>Metrics:</strong> {Object.entries(selectedTest.config.metrics)
                       .filter(([_, value]) => value)
                       .map(([key]) => key)
                       .join(', ')}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Порог значимости:</strong> {selectedTest.config.significance_threshold}
+                    <strong>Significance Threshold:</strong> {selectedTest.config.significance_threshold}
                   </Typography>
                 </Grid>
               </Grid>
               
               <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-                Сравнение вариантов
+                Variant Comparison
               </Typography>
               <VariantComparisonTable test={selectedTest} />
               
               <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-                Визуализация результатов
+                Test Results Visualization
               </Typography>
               <TestResultsVisualization test={selectedTest} />
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseDetails}>Закрыть</Button>
+              <Button onClick={handleCloseDetails}>Close</Button>
             </DialogActions>
           </>
         )}
@@ -606,18 +606,18 @@ const AdvancedTestingFramework: React.FC = () => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Создание нового теста</DialogTitle>
+        <DialogTitle>Create New Test</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
-            label="Название теста"
+            label="Test Name"
             fullWidth
             value={newTest.name}
             onChange={(e) => setNewTest({ ...newTest, name: e.target.value })}
           />
           <TextField
             margin="dense"
-            label="Описание"
+            label="Description"
             fullWidth
             multiline
             rows={2}
@@ -626,27 +626,27 @@ const AdvancedTestingFramework: React.FC = () => {
           />
           
           <FormControl fullWidth margin="dense">
-            <InputLabel>Промпт</InputLabel>
+            <InputLabel>Prompt</InputLabel>
             <Select
               value={newTest.prompt_id || ''}
               onChange={(e) => setNewTest({ ...newTest, prompt_id: e.target.value as number })}
-              label="Промпт"
+              label="Prompt"
             >
-              <MenuItem value={123}>Классификационный промпт</MenuItem>
-              <MenuItem value={456}>Суммаризационный промпт</MenuItem>
-              <MenuItem value={789}>Генеративный промпт</MenuItem>
+              <MenuItem value={123}>Classification Prompt</MenuItem>
+              <MenuItem value={456}>Summarization Prompt</MenuItem>
+              <MenuItem value={789}>Generative Prompt</MenuItem>
             </Select>
           </FormControl>
           
           <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-            Конфигурация теста
+            Test Configuration
           </Typography>
           
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <TextField
                 margin="dense"
-                label="Запусков на вариант"
+                label="Runs per variant"
                 type="number"
                 fullWidth
                 value={newTest.config?.runs_per_variant || 10}
@@ -662,7 +662,7 @@ const AdvancedTestingFramework: React.FC = () => {
             <Grid item xs={12} md={6}>
               <TextField
                 margin="dense"
-                label="Количество вариантов"
+                label="Number of variants"
                 type="number"
                 fullWidth
                 value={newTest.config?.variants_count || 2}
@@ -675,7 +675,7 @@ const AdvancedTestingFramework: React.FC = () => {
                     for (let i = currentVariants.length; i < variantsCount; i++) {
                       currentVariants.push({
                         id: `${i + 1}`,
-                        name: `Вариант ${String.fromCharCode(65 + i)}`, // A, B, C, ...
+                        name: `Variant ${String.fromCharCode(65 + i)}`, // A, B, C, ...
                         content: []
                       });
                     }
@@ -698,7 +698,7 @@ const AdvancedTestingFramework: React.FC = () => {
           </Grid>
           
           <FormControl fullWidth margin="dense">
-            <InputLabel>Целевые модели</InputLabel>
+            <InputLabel>Target Models</InputLabel>
             <Select
               multiple
               value={newTest.config?.target_models || []}
@@ -709,7 +709,7 @@ const AdvancedTestingFramework: React.FC = () => {
                   target_models: e.target.value as string[]
                 } as any
               })}
-              label="Целевые модели"
+              label="Target Models"
               renderValue={(selected) => (selected as string[]).join(', ')}
             >
               <MenuItem value="gpt-4">GPT-4</MenuItem>
@@ -721,7 +721,7 @@ const AdvancedTestingFramework: React.FC = () => {
           </FormControl>
           
           <Typography variant="subtitle1" sx={{ mt: 2 }}>
-            Отслеживаемые метрики:
+            Tracked Metrics:
           </Typography>
           <Grid container spacing={2}>
             {Object.entries(newTest.config?.metrics || {}).map(([key, value]) => (
@@ -749,8 +749,8 @@ const AdvancedTestingFramework: React.FC = () => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseCreateDialog}>Отмена</Button>
-          <Button onClick={handleCreateTest} variant="contained">Создать</Button>
+          <Button onClick={handleCloseCreateDialog}>Cancel</Button>
+          <Button onClick={handleCreateTest} variant="contained">Create</Button>
         </DialogActions>
       </Dialog>
     </Box>

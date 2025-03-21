@@ -775,27 +775,42 @@ const TestList: React.FC = () => {
         </Box>
       </Box>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="testing tabs">
-          <Tab 
-            label="Basic A/B Tests" 
-            id="test-tab-0" 
-            aria-controls="test-tabpanel-0" 
-          />
-          <Tab 
-            label="Advanced Analytics" 
-            id="test-tab-1" 
-            aria-controls="test-tabpanel-1"
-            icon={<SpeedIcon />}
-            iconPosition="start"
-          />
+      <Box sx={{ mb: 3 }}>
+        <Tabs value={tabValue} onChange={handleTabChange}>
+          <Tab label="Standard Testing" />
+          <Tab label="Advanced Testing" />
         </Tabs>
       </Box>
 
       <TabPanel value={tabValue} index={0}>
+        {tabValue === 0 && (
+          <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+            <Typography variant="h5" gutterBottom>
+              Standard A/B Testing
+            </Typography>
+            <Typography variant="body1">
+              Create and manage A/B tests for your prompts. Compare different prompt variations, analyze their performance, 
+              and optimize your prompting strategies. Use the test results to make data-driven decisions about which prompt 
+              variations work best for your specific use cases.
+            </Typography>
+          </Paper>
+        )}
         <StandardTestingComponent />
       </TabPanel>
+
       <TabPanel value={tabValue} index={1}>
+        {tabValue === 1 && (
+          <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+            <Typography variant="h5" gutterBottom>
+              Advanced Testing Framework
+            </Typography>
+            <Typography variant="body1">
+              Design and execute complex testing scenarios with our advanced testing framework. Create custom test suites, 
+              define sophisticated evaluation criteria, and perform in-depth analysis of prompt performance across multiple 
+              dimensions. Perfect for researchers and power users who need granular control over their testing process.
+            </Typography>
+          </Paper>
+        )}
         <AdvancedTestingFramework />
       </TabPanel>
     </Box>
