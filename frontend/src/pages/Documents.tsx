@@ -148,6 +148,18 @@ const Documents: React.FC = () => {
         </Alert>
       )}
 
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+        <Typography variant="h5" gutterBottom>
+          Document Management for RAG
+        </Typography>
+        <Typography variant="body1">
+          Upload and manage your documents for Retrieval-Augmented Generation (RAG). Our system processes various file formats 
+          including PDFs, text files, and more. These documents will be automatically indexed and made available for context-aware 
+          prompting, allowing your AI interactions to leverage your specific knowledge base. Perfect for creating domain-specific 
+          responses and maintaining information accuracy.
+        </Typography>
+      </Paper>
+
       <Paper sx={{ width: '100%', mb: 4 }}>
         <TabPanel value={tabValue} index={0}>
           {loading ? (
