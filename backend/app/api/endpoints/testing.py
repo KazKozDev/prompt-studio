@@ -13,6 +13,32 @@ from app.integrations.llm_clients import get_llm_client
 
 router = APIRouter()
 
+@router.get("/")
+async def get_tests(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> Any:
+    """Get list of all tests for the current user."""
+    # Get all analytics entries for the user's prompts
+    tests = db.query(PromptAnalytics)\
+        .join(Prompt)\
+        .filter(Prompt.user_id == current_user.id)\
+        .all()
+    
+    return {
+        "tests": [
+            {
+                "id": test.id,
+                "name": f"Test {test.prompt_id} - {test.provider}",
+                "prompt_id": test.prompt_id,
+                "provider": test.provider,
+                "metrics": test.metrics,
+                "created_at": test.date
+            }
+            for test in tests
+        ]
+    }
+
 @router.get("/providers")
 async def get_providers(
     current_user: User = Depends(get_current_active_user),
