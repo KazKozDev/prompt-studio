@@ -1,0 +1,14 @@
+backend/venv/
+frontend/node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+.env
+backend/uploads/
+frontend/node_modules/.cache/
+*.so
+*.dylib
+*.bin
+*.safetensors
+*.pack
