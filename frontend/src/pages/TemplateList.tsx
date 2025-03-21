@@ -148,6 +148,19 @@ const TemplateList: React.FC = () => {
         </Box>
       ) : filteredTemplates.length > 0 ? (
         <>
+          {tabValue === 0 && (
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+              <Typography variant="h5" gutterBottom>
+                Your Custom Prompt Templates
+              </Typography>
+              <Typography variant="body1">
+                Create and manage your personalized prompt templates. Design custom templates for your specific needs, 
+                save successful prompting patterns, and build your own library of effective prompting techniques. 
+                Click "New Template" to start crafting your custom prompt template.
+              </Typography>
+            </Paper>
+          )}
+
           {tabValue === 1 && (
             <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
               <Typography variant="h5" gutterBottom>
