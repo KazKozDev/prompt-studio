@@ -40,7 +40,7 @@ def get_user_settings(
         mistral_key=settings.mistral_key or "",
         google_key=settings.google_key or "",
         cohere_key=settings.cohere_key or "",
-        groq_key=""  # Поле groq_key может отсутствовать в модели, поэтому используем пустое значение
+        groq_key=settings.groq_key or ""
     )
 
 @router.put("/settings", response_model=UserSettingsSchema)
@@ -66,6 +66,7 @@ def update_user_settings(
     db_settings.mistral_key = settings_update.mistral_key
     db_settings.google_key = settings_update.google_key
     db_settings.cohere_key = settings_update.cohere_key
+    db_settings.groq_key = settings_update.groq_key
     
     # Сохранить изменения
     db.commit()
@@ -77,5 +78,5 @@ def update_user_settings(
         mistral_key=db_settings.mistral_key or "",
         google_key=db_settings.google_key or "",
         cohere_key=db_settings.cohere_key or "",
-        groq_key=""  # Поле groq_key может отсутствовать в модели
+        groq_key=db_settings.groq_key or ""
     ) 
