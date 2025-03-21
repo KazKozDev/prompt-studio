@@ -524,18 +524,6 @@ const ComprehensiveLearningSystem: React.FC = () => {
   const TechniquesList = () => (
     <Box>
       <Box sx={{ mb: 3 }}>
-        <TextField
-          fullWidth
-          placeholder="Search for prompt engineering techniques..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-          InputProps={{
-            startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-          }}
-          size="small"
-          sx={{ mb: 2 }}
-        />
-        
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {categories.map(category => (
             <Chip
@@ -791,6 +779,15 @@ const ComprehensiveLearningSystem: React.FC = () => {
         </Button>
       </Box>
       
+      <Box sx={{ mb: 3 }}>
+        <Tabs value={tabIndex} onChange={handleTabChange}>
+          <Tab label="Learning Materials" />
+          <Tab label="Techniques" />
+          <Tab label="Challenges" />
+          <Tab label="Helper" />
+        </Tabs>
+      </Box>
+      
       <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
         <Typography variant="h5" gutterBottom>
           Learn Prompt Engineering
@@ -801,22 +798,13 @@ const ComprehensiveLearningSystem: React.FC = () => {
           effective prompts directly in the tool, leveraging real-time feedback and examples to improve your results.
         </Typography>
       </Paper>
-      
+
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+
       {loading ? (
         <CircularProgress />
-      ) : error ? (
-        <Alert severity="error">{error}</Alert>
       ) : (
         <Box>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-            <Tabs value={tabIndex} onChange={handleTabChange}>
-              <Tab icon={<SchoolIcon />} label="Learning Materials" iconPosition="start" />
-              <Tab icon={<CategoryIcon />} label="Techniques" iconPosition="start" />
-              <Tab icon={<AssignmentIcon />} label="Challenges" iconPosition="start" />
-              <Tab icon={<PsychologyIcon />} label="Helper" iconPosition="start" />
-            </Tabs>
-          </Box>
-          
           {tabIndex === 0 && (
             <Box>
               {!selectedTutorial ? (
