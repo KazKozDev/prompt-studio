@@ -232,30 +232,6 @@ const TestList: React.FC = () => {
     <>
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
       
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
-        <TextField
-          label="Search tests"
-          variant="outlined"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ width: '300px' }}
-        />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleOpenDialog}
-        >
-          New Test
-        </Button>
-      </Box>
-      
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
@@ -298,7 +274,7 @@ const TestList: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex' }}>
-                      <Tooltip title="Детали">
+                      <Tooltip title="Details">
                         <IconButton 
                           size="small"
                           onClick={() => handleOpenDetailsDialog(test.id)}
@@ -307,7 +283,7 @@ const TestList: React.FC = () => {
                         </IconButton>
                       </Tooltip>
                       
-                      <Tooltip title="Результаты">
+                      <Tooltip title="Results">
                         <IconButton 
                           size="small"
                           color="primary"
@@ -330,7 +306,7 @@ const TestList: React.FC = () => {
                       </Tooltip>
                       
                       {test.status === 'draft' || test.status === 'stopped' ? (
-                        <Tooltip title="Запустить тест">
+                        <Tooltip title="Start Test">
                           <IconButton 
                             size="small"
                             color="success"
@@ -340,7 +316,7 @@ const TestList: React.FC = () => {
                           </IconButton>
                         </Tooltip>
                       ) : test.status === 'running' ? (
-                        <Tooltip title="Остановить тест">
+                        <Tooltip title="Stop Test">
                           <IconButton 
                             size="small"
                             color="warning"
@@ -351,7 +327,7 @@ const TestList: React.FC = () => {
                         </Tooltip>
                       ) : null}
                       
-                      <Tooltip title="Удалить тест">
+                      <Tooltip title="Delete Test">
                         <IconButton 
                           size="small"
                           color="error"
@@ -370,22 +346,14 @@ const TestList: React.FC = () => {
       ) : (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography color="text.secondary">
-            {searchQuery ? 'Тесты не найдены.' : 'Нет доступных тестов.'}
+            {searchQuery ? 'No tests found.' : 'No tests available.'}
           </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={handleOpenDialog}
-            sx={{ mt: 2 }}
-          >
-            Создать тест
-          </Button>
         </Paper>
       )}
       
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
-          Создание нового A/B теста
+          Create New A/B Test
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
@@ -394,7 +362,7 @@ const TestList: React.FC = () => {
                 <TextField
                   fullWidth
                   margin="normal"
-                  label="Название теста"
+                  label="Test Name"
                   name="name"
                   value={newTest.name}
                   onChange={handleInputChange}
@@ -403,11 +371,11 @@ const TestList: React.FC = () => {
               </Grid>
               <Grid item xs={12} sm={4}>
                 <FormControl fullWidth margin="normal">
-                  <InputLabel>Базовый промпт</InputLabel>
+                  <InputLabel>Base Prompt</InputLabel>
                   <Select
                     name="prompt_id"
                     value={newTest.prompt_id}
-                    label="Базовый промпт"
+                    label="Base Prompt"
                     onChange={handleSelectChange as any}
                     required
                   >
@@ -423,7 +391,7 @@ const TestList: React.FC = () => {
                 <TextField
                   fullWidth
                   margin="normal"
-                  label="Описание"
+                  label="Description"
                   name="description"
                   value={newTest.description}
                   onChange={handleInputChange}
@@ -433,14 +401,14 @@ const TestList: React.FC = () => {
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
-                  Конфигурация теста
+                  Test Configuration
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       type="number"
-                      label="Запусков на вариант"
+                      label="Runs per Variant"
                       name="test_config.runs_per_variant"
                       value={newTest.test_config.runs_per_variant}
                       onChange={(e) => setNewTest({
@@ -458,17 +426,17 @@ const TestList: React.FC = () => {
             </Grid>
             
             <Typography variant="subtitle1" gutterBottom sx={{ mt: 3 }}>
-              Варианты
+              Variants
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Измените базовый промпт, чтобы создать различные варианты для тестирования. Исходные варианты основаны на выбранном промпте.
+              Modify the base prompt to create different variants for testing. Initial variants are based on the selected prompt.
             </Typography>
             
             {newTest.variants.map((variant: any, index: number) => (
               <Box key={index} sx={{ mb: 3 }}>
                 <TextField
                   fullWidth
-                  label={`Название варианта ${index + 1}`}
+                  label={`Variant ${index + 1} Name`}
                   value={variant.name}
                   onChange={(e) => {
                     const updatedVariants = [...newTest.variants];
@@ -482,7 +450,7 @@ const TestList: React.FC = () => {
                 />
                 <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
                   <Typography variant="caption" color="text.secondary">
-                    Этот вариант содержит {variant.content.length} элементов промпта, которые будут изменены на следующем шаге.
+                    This variant contains {variant.content.length} prompt elements that will be modified in the next step.
                   </Typography>
                 </Paper>
               </Box>
@@ -490,13 +458,13 @@ const TestList: React.FC = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Отмена</Button>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
           <Button 
             onClick={handleCreateTest}
             variant="contained"
             disabled={!newTest.name || !newTest.prompt_id}
           >
-            Создать тест
+            Create Test
           </Button>
         </DialogActions>
       </Dialog>
@@ -508,7 +476,7 @@ const TestList: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          Детали теста
+          Test Details
         </DialogTitle>
         <DialogContent>
           {loading ? (
@@ -538,33 +506,33 @@ const TestList: React.FC = () => {
               
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Конфигурация теста
+                  Test Configuration
                 </Typography>
                 <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
                   <Table size="small">
                     <TableBody>
                       <TableRow>
-                        <TableCell><strong>Создан</strong></TableCell>
+                        <TableCell><strong>Created</strong></TableCell>
                         <TableCell>{currentTest.created_at ? new Date(currentTest.created_at).toLocaleString() : 'N/A'}</TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell><strong>Статус</strong></TableCell>
+                        <TableCell><strong>Status</strong></TableCell>
                         <TableCell>{currentTest.status}</TableCell>
                       </TableRow>
                       {currentTest.start_date && (
                         <TableRow>
-                          <TableCell><strong>Запущен</strong></TableCell>
+                          <TableCell><strong>Started</strong></TableCell>
                           <TableCell>{new Date(currentTest.start_date).toLocaleString()}</TableCell>
                         </TableRow>
                       )}
                       {currentTest.end_date && (
                         <TableRow>
-                          <TableCell><strong>Завершен</strong></TableCell>
+                          <TableCell><strong>Completed</strong></TableCell>
                           <TableCell>{new Date(currentTest.end_date).toLocaleString()}</TableCell>
                         </TableRow>
                       )}
                       <TableRow>
-                        <TableCell><strong>Запусков на вариант</strong></TableCell>
+                        <TableCell><strong>Runs per Variant</strong></TableCell>
                         <TableCell>{currentTest.test_config?.runs_per_variant || 1}</TableCell>
                       </TableRow>
                     </TableBody>
@@ -574,7 +542,7 @@ const TestList: React.FC = () => {
               
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Варианты ({currentTest?.variants?.length || 0})
+                  Variants ({currentTest?.variants?.length || 0})
                 </Typography>
                 <Grid container spacing={2}>
                   {currentTest?.variants?.map((variant: any) => (
@@ -584,7 +552,7 @@ const TestList: React.FC = () => {
                           <Typography variant="h6">{variant.name}</Typography>
                           <Box sx={{ mt: 1 }}>
                             <Typography variant="caption" color="text.secondary">
-                              {variant.content?.length || 0} элементов промпта
+                              {variant.content?.length || 0} prompt elements
                             </Typography>
                           </Box>
                         </CardContent>
@@ -596,7 +564,7 @@ const TestList: React.FC = () => {
               
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Результаты ({currentTest?.results?.length || 0})
+                  Results ({currentTest?.results?.length || 0})
                 </Typography>
                 {currentTest?.results?.length ? (
                   <Box sx={{ mb: 3 }}>
@@ -608,24 +576,24 @@ const TestList: React.FC = () => {
                       }}
                       startIcon={<AssessmentIcon />}
                     >
-                      Просмотр детальных результатов
+                      View Detailed Results
                     </Button>
                   </Box>
                 ) : (
                   <Typography variant="body2" color="text.secondary">
-                    Результаты недоступны. Запустите тест для получения результатов.
+                    No results available. Start the test to get results.
                   </Typography>
                 )}
               </Box>
             </Box>
           ) : (
             <Typography color="text.secondary">
-              Детали теста недоступны.
+              Test details are not available.
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDetailsDialog}>Закрыть</Button>
+          <Button onClick={handleCloseDetailsDialog}>Close</Button>
           {currentTest && (
             <>
               {currentTest.status === 'draft' || currentTest.status === 'stopped' ? (
@@ -638,7 +606,7 @@ const TestList: React.FC = () => {
                     handleCloseDetailsDialog();
                   }}
                 >
-                  Запустить тест
+                  Start Test
                 </Button>
               ) : currentTest.status === 'running' ? (
                 <Button 
@@ -650,7 +618,7 @@ const TestList: React.FC = () => {
                     handleCloseDetailsDialog();
                   }}
                 >
-                  Остановить тест
+                  Stop Test
                 </Button>
               ) : null}
             </>
@@ -665,7 +633,7 @@ const TestList: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          Результаты теста
+          Test Results
         </DialogTitle>
         <DialogContent>
           {loading ? (
@@ -675,23 +643,23 @@ const TestList: React.FC = () => {
           ) : currentTest ? (
             <Box sx={{ pt: 1 }}>
               <Typography variant="h6" gutterBottom>
-                {currentTest.name} - Сводка результатов
+                {currentTest.name} - Results Summary
               </Typography>
               
               <Paper sx={{ p: 3, mb: 3 }}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Метрики производительности
+                  Performance Metrics
                 </Typography>
                 
                 <Box sx={{ mb: 2, textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
-                    Здесь будет реализована подробная визуализация аналитики.
+                    Detailed analytics visualization will be implemented here.
                   </Typography>
                 </Box>
                 
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>
-                    Всего запусков: {currentTest?.results?.length || 0}
+                    Total Runs: {currentTest?.results?.length || 0}
                   </Typography>
                   
                   {currentTest?.variants?.map((variant: any) => {
@@ -701,7 +669,7 @@ const TestList: React.FC = () => {
                     return (
                       <Box key={variant.id} sx={{ mb: 2 }}>
                         <Typography variant="body2">
-                          {variant.name}: {variantResults.length} запусков ({completionRate.toFixed(0)}% завершено)
+                          {variant.name}: {variantResults.length} runs ({completionRate.toFixed(0)}% completed)
                         </Typography>
                         <LinearProgress 
                           variant="determinate" 
@@ -715,19 +683,19 @@ const TestList: React.FC = () => {
               </Paper>
               
               <Typography variant="subtitle1" gutterBottom>
-                Детальные результаты
+                Detailed Results
               </Typography>
               
               <TableContainer component={Paper} variant="outlined">
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>№</TableCell>
-                      <TableCell>Вариант</TableCell>
-                      <TableCell>Провайдер</TableCell>
-                      <TableCell>Модель</TableCell>
-                      <TableCell>Токены</TableCell>
-                      <TableCell>Создан</TableCell>
+                      <TableCell>#</TableCell>
+                      <TableCell>Variant</TableCell>
+                      <TableCell>Provider</TableCell>
+                      <TableCell>Model</TableCell>
+                      <TableCell>Tokens</TableCell>
+                      <TableCell>Created</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -743,11 +711,11 @@ const TestList: React.FC = () => {
                       return (
                         <TableRow key={result.id || index}>
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell>{variant ? variant.name : 'Неизвестно'}</TableCell>
-                          <TableCell>{metrics.provider || 'Н/Д'}</TableCell>
-                          <TableCell>{metrics.model || 'Н/Д'}</TableCell>
+                          <TableCell>{variant ? variant.name : 'Unknown'}</TableCell>
+                          <TableCell>{metrics.provider || 'N/A'}</TableCell>
+                          <TableCell>{metrics.model || 'N/A'}</TableCell>
                           <TableCell>{tokens.input + tokens.output}</TableCell>
-                          <TableCell>{result.created_at ? new Date(result.created_at).toLocaleString() : 'Н/Д'}</TableCell>
+                          <TableCell>{result.created_at ? new Date(result.created_at).toLocaleString() : 'N/A'}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -755,7 +723,7 @@ const TestList: React.FC = () => {
                       <TableRow>
                         <TableCell colSpan={6} align="center">
                           <Typography variant="body2" color="text.secondary">
-                            И еще {currentTest.results.length - 10} результатов...
+                            And {currentTest.results.length - 10} more results...
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -766,12 +734,12 @@ const TestList: React.FC = () => {
             </Box>
           ) : (
             <Typography color="text.secondary">
-              Результаты теста недоступны.
+              Test results are not available.
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseResultsDialog}>Закрыть</Button>
+          <Button onClick={handleCloseResultsDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </>
@@ -781,7 +749,22 @@ const TestList: React.FC = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">Testing System</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            label="Search tests"
+            variant="outlined"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: '300px' }}
+          />
           <Button
             variant="contained"
             startIcon={<AddIcon />}
