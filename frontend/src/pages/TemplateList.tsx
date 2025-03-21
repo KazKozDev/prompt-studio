@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { 
   fetchTemplates, fetchPublicTemplates, createTemplate, 
-  deleteTemplate, Template
+  deleteTemplate, updateTemplate, Template
 } from '../store/slices/templateSlice';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -84,7 +84,13 @@ const TemplateList: React.FC = () => {
         } : newTemplate.structure
       };
       
-      dispatch(createTemplate(templateToSave));
+      if (newTemplate.id) {
+        // If template has an ID, it's an update
+        dispatch(updateTemplate({ id: newTemplate.id, data: templateToSave }));
+      } else {
+        // If no ID, it's a new template
+        dispatch(createTemplate(templateToSave));
+      }
       handleCloseDialog();
     }
   };
@@ -184,17 +190,13 @@ const TemplateList: React.FC = () => {
                     </Typography>
                   </Box>
                   
-                  {template.description && Number(tabValue) === 1 ? (
+                  {template.description && (
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       {template.description.split('\n\nAdvantage:')[0]}
                     </Typography>
-                  ) : template.description && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      {template.description}
-                    </Typography>
                   )}
                   
-                  {Number(tabValue) === 1 && template.structure.example_prompt && (
+                  {template.structure.example_prompt && (
                     <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
                       <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
                         Example:
@@ -205,7 +207,7 @@ const TemplateList: React.FC = () => {
                     </Box>
                   )}
                   
-                  {Number(tabValue) === 1 && template.structure.example_chain && (
+                  {template.structure.example_chain && (
                     <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
                       <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
                         Example:
@@ -216,7 +218,7 @@ const TemplateList: React.FC = () => {
                     </Box>
                   )}
 
-                  {Number(tabValue) === 1 && template.description && template.description.includes('\n\nAdvantage:') && (
+                  {template.description && template.description.includes('\n\nAdvantage:') && (
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
                       <Box component="span" sx={{ fontWeight: 'bold', fontStyle: 'italic' }}>Advantage: </Box>
                       <Box component="span" sx={{ fontStyle: 'italic' }}>
@@ -270,7 +272,17 @@ const TemplateList: React.FC = () => {
                           setNewTemplate({
                             name: `Copy of ${template.name}`,
                             description: template.description || '',
-                            structure: template.structure,
+                            structure: {
+                              ...template.structure,
+                              example_prompt: template.structure.example_prompt ? {
+                                ...template.structure.example_prompt,
+                                default_value: template.structure.example_prompt.default_value || ''
+                              } : undefined,
+                              example_chain: template.structure.example_chain ? {
+                                ...template.structure.example_chain,
+                                default_value: template.structure.example_chain.default_value || ''
+                              } : undefined
+                            },
                             is_public: false
                           });
                           setDialogOpen(true);
@@ -318,6 +330,32 @@ const TemplateList: React.FC = () => {
               onChange={handleInputChange}
               multiline
               rows={3}
+            />
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Example Prompt"
+              name="example_prompt"
+              value={newTemplate.structure?.example_prompt?.default_value || ''}
+              onChange={(e) => {
+                const newStructure = {
+                  ...newTemplate.structure,
+                  example_prompt: {
+                    type: 'text',
+                    required: false,
+                    default_value: e.target.value,
+                    placeholder: 'Enter example prompt',
+                    description: 'Example of how to use this template'
+                  }
+                };
+                setNewTemplate({
+                  ...newTemplate,
+                  structure: newStructure
+                });
+              }}
+              multiline
+              rows={4}
+              placeholder="Enter an example of how this template should be used"
             />
             <FormControlLabel
               control={

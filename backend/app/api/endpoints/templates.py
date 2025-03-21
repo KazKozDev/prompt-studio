@@ -122,15 +122,8 @@ def update_template(
             elif hasattr(element, "dict"):      # Pydantic v1
                 structure_dict[key] = element.dict()
             else:
-                # Fallback для нестандартных объектов
-                structure_dict[key] = {
-                    "type": element.type,
-                    "required": element.required,
-                    "default_value": element.default_value,
-                    "placeholder": element.placeholder,
-                    "description": element.description,
-                    "constraints": element.constraints
-                }
+                # Если элемент уже является словарем, используем его как есть
+                structure_dict[key] = element
         update_data['structure'] = structure_dict
     
     for field, value in update_data.items():
