@@ -56,6 +56,17 @@ const Prompts: React.FC = () => {
         </Box>
       </Box>
 
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+        <Typography variant="h5" gutterBottom>
+          Prompt Management
+        </Typography>
+        <Typography variant="body1">
+          Create, edit, and manage your AI prompts in one place. Build powerful prompts using our advanced editor with 
+          multimodal support, test them with different AI models, and collaborate with your team. Use templates to 
+          quickly create effective prompts or start from scratch with your own custom design.
+        </Typography>
+      </Paper>
+
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       {loading ? (
