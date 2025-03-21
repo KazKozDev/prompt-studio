@@ -142,164 +142,154 @@ const TemplateList: React.FC = () => {
         </Tabs>
       </Box>
       
+      {tabValue === 0 && (
+        <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+          <Typography variant="h5" gutterBottom>
+            Your Custom Prompt Templates
+          </Typography>
+          <Typography variant="body1">
+            Create and manage your personalized prompt templates. Design custom templates for your specific needs, 
+            save successful prompting patterns, and build your own library of effective prompting techniques. 
+            Click "New Template" to start crafting your custom prompt template.
+          </Typography>
+        </Paper>
+      )}
+
+      {tabValue === 1 && (
+        <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+          <Typography variant="h5" gutterBottom>
+            Advanced Prompting Techniques for Business Applications
+          </Typography>
+          <Typography variant="body1">
+            Ready-to-use templates featuring state-of-the-art prompting techniques for business tasks. These templates incorporate 
+            multimodal input capabilities and are optimized for modern AI systems. Click "Use Template" to create 
+            a new prompt based on any template, or copy it to your personal collection.
+          </Typography>
+        </Paper>
+      )}
+      
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
         </Box>
       ) : filteredTemplates.length > 0 ? (
-        <>
-          {tabValue === 0 && (
-            <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
-              <Typography variant="h5" gutterBottom>
-                Your Custom Prompt Templates
-              </Typography>
-              <Typography variant="body1">
-                Create and manage your personalized prompt templates. Design custom templates for your specific needs, 
-                save successful prompting patterns, and build your own library of effective prompting techniques. 
-                Click "New Template" to start crafting your custom prompt template.
-              </Typography>
-            </Paper>
-          )}
-
-          {tabValue === 1 && (
-            <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
-              <Typography variant="h5" gutterBottom>
-                Advanced Prompting Techniques for Business Applications
-              </Typography>
-              <Typography variant="body1">
-                Ready-to-use templates featuring state-of-the-art prompting techniques for business tasks. These templates incorporate 
-                multimodal input capabilities and are optimized for modern AI systems. Click "Use Template" to create 
-                a new prompt based on any template, or copy it to your personal collection.
-              </Typography>
-            </Paper>
-          )}
-          
-          <Grid container spacing={3}>
-            {filteredTemplates.map((template) => (
-              <Grid item xs={12} sm={6} md={6} key={template.id}>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <Typography variant="h6" component="div" sx={{ mb: 1 }}>
-                        {template.name}
+        <Grid container spacing={3}>
+          {filteredTemplates.map((template) => (
+            <Grid item xs={12} sm={6} md={6} key={template.id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Typography variant="h6" component="div" sx={{ mb: 1 }}>
+                      {template.name}
+                    </Typography>
+                  </Box>
+                  
+                  {template.description && Number(tabValue) === 1 ? (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {template.description.split('\n\nAdvantage:')[0]}
+                    </Typography>
+                  ) : template.description && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      {template.description}
+                    </Typography>
+                  )}
+                  
+                  {Number(tabValue) === 1 && template.structure.example_prompt && (
+                    <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
+                      <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                        Example:
+                      </Typography>
+                      <Typography variant="caption" sx={{ whiteSpace: 'pre-wrap', display: 'block' }}>
+                        {template.structure.example_prompt.default_value}
                       </Typography>
                     </Box>
-                    
-                    {template.description && Number(tabValue) === 1 ? (
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {template.description.split('\n\nAdvantage:')[0]}
+                  )}
+                  
+                  {Number(tabValue) === 1 && template.structure.example_chain && (
+                    <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
+                      <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                        Example:
                       </Typography>
-                    ) : template.description && (
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {template.description}
+                      <Typography variant="caption" sx={{ whiteSpace: 'pre-wrap', display: 'block' }}>
+                        {template.structure.example_chain.default_value}
                       </Typography>
-                    )}
-                    
-                    {Number(tabValue) === 1 && template.structure.example_prompt && (
-                      <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
-                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                          Example:
-                        </Typography>
-                        <Typography variant="caption" sx={{ whiteSpace: 'pre-wrap', display: 'block' }}>
-                          {template.structure.example_prompt.default_value}
-                        </Typography>
-                      </Box>
-                    )}
-                    
-                    {Number(tabValue) === 1 && template.structure.example_chain && (
-                      <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
-                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                          Example:
-                        </Typography>
-                        <Typography variant="caption" sx={{ whiteSpace: 'pre-wrap', display: 'block' }}>
-                          {template.structure.example_chain.default_value}
-                        </Typography>
-                      </Box>
-                    )}
+                    </Box>
+                  )}
 
-                    {Number(tabValue) === 1 && template.description && template.description.includes('\n\nAdvantage:') && (
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                        <Box component="span" sx={{ fontWeight: 'bold', fontStyle: 'italic' }}>Advantage: </Box>
-                        <Box component="span" sx={{ fontStyle: 'italic' }}>
-                          {template.description.split('\n\nAdvantage:')[1].trim()}
-                        </Box>
-                      </Typography>
-                    )}
-                  </CardContent>
-                  <CardActions>
-                    <Button 
-                      size="small" 
-                      variant="outlined"
-                      onClick={() => navigate(`/prompts/new?template=${template.id}`)}
-                    >
-                      Use Template
-                    </Button>
-                    
-                    {tabValue === 0 && (
-                      <>
-                        <Tooltip title="Edit Template">
-                          <IconButton 
-                            size="small"
-                            onClick={() => {
-                              setNewTemplate({
-                                ...template
-                              });
-                              setDialogOpen(true);
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        
-                        <Tooltip title="Delete Template">
-                          <IconButton 
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeleteTemplate(template.id)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </>
-                    )}
-                    
-                    {tabValue === 1 && (
-                      <Tooltip title="Copy Template">
+                  {Number(tabValue) === 1 && template.description && template.description.includes('\n\nAdvantage:') && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                      <Box component="span" sx={{ fontWeight: 'bold', fontStyle: 'italic' }}>Advantage: </Box>
+                      <Box component="span" sx={{ fontStyle: 'italic' }}>
+                        {template.description.split('\n\nAdvantage:')[1].trim()}
+                      </Box>
+                    </Typography>
+                  )}
+                </CardContent>
+                <CardActions>
+                  <Button 
+                    size="small" 
+                    variant="outlined"
+                    onClick={() => navigate(`/prompts/new?template=${template.id}`)}
+                  >
+                    Use Template
+                  </Button>
+                  
+                  {tabValue === 0 && (
+                    <>
+                      <Tooltip title="Edit Template">
                         <IconButton 
                           size="small"
                           onClick={() => {
                             setNewTemplate({
-                              name: `Copy of ${template.name}`,
-                              description: template.description || '',
-                              structure: template.structure,
-                              is_public: false
+                              ...template
                             });
                             setDialogOpen(true);
                           }}
                         >
-                          <ContentCopyIcon fontSize="small" />
+                          <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                    )}
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </>
+                      
+                      <Tooltip title="Delete Template">
+                        <IconButton 
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteTemplate(template.id)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                  
+                  {tabValue === 1 && (
+                    <Tooltip title="Copy Template">
+                      <IconButton 
+                        size="small"
+                        onClick={() => {
+                          setNewTemplate({
+                            name: `Copy of ${template.name}`,
+                            description: template.description || '',
+                            structure: template.structure,
+                            is_public: false
+                          });
+                          setDialogOpen(true);
+                        }}
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       ) : (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
           <Typography color="text.secondary">
             {searchQuery ? 'No templates match your search.' : 'No templates available.'}
           </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={handleOpenDialog}
-            sx={{ mt: 2 }}
-          >
-            Create Template
-          </Button>
         </Paper>
       )}
       
