@@ -1007,213 +1007,107 @@ const PromptEditor: React.FC = () => {
             Test Prompt
           </Typography>
           
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={4}>
-              <FormControl fullWidth>
-                <InputLabel>Provider</InputLabel>
+          <Box sx={{ p: 2 }}>
+            <Box sx={{ mb: 2 }}>
+              <FormControl sx={{ minWidth: 120, mr: 2 }}>
+                <InputLabel id="provider-label">Provider</InputLabel>
                 <Select
+                  labelId="provider-label"
                   value={testProvider}
                   label="Provider"
-                  onChange={(e) => setTestProvider(e.target.value as string)}
+                  onChange={(e) => setTestProvider(e.target.value)}
                 >
                   {providers.map((provider) => (
-                    <MenuItem key={provider.id} value={provider.id}>{provider.name}</MenuItem>
+                    <MenuItem key={provider.id} value={provider.id}>
+                      {provider.name}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <FormControl fullWidth>
-                <InputLabel>Model</InputLabel>
+              
+              <FormControl sx={{ minWidth: 120, mr: 2 }}>
+                <InputLabel id="model-label">Model</InputLabel>
                 <Select
+                  labelId="model-label"
                   value={testModel}
                   label="Model"
-                  onChange={(e) => setTestModel(e.target.value as string)}
+                  onChange={(e) => setTestModel(e.target.value)}
                 >
                   {availableModels.map((model) => (
-                    <MenuItem key={model} value={model}>{model}</MenuItem>
+                    <MenuItem key={model} value={model}>
+                      {model}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Button 
-                fullWidth 
-                variant="contained"
-                startIcon={<PlayArrowIcon />}
-                onClick={runTest}
-                disabled={loading || !id}
-                sx={{ height: '56px' }}
-              >
-                {loading ? <CircularProgress size={24} /> : 'Run Test'}
-              </Button>
-            </Grid>
-          </Grid>
-          
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Test Parameters</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
+            </Box>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Parameters
+              </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={6}>
                   <TextField
                     fullWidth
-                    type="number"
                     label="Temperature"
+                    type="number"
                     value={testParameters.temperature}
                     onChange={(e) => setTestParameters({
                       ...testParameters,
                       temperature: parseFloat(e.target.value)
                     })}
                     inputProps={{
+                      step: 0.1,
                       min: 0,
-                      max: 1,
-                      step: 0.1
+                      max: 1
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={6}>
                   <TextField
                     fullWidth
-                    type="number"
                     label="Max Tokens"
+                    type="number"
                     value={testParameters.max_tokens}
                     onChange={(e) => setTestParameters({
                       ...testParameters,
                       max_tokens: parseInt(e.target.value)
                     })}
                     inputProps={{
-                      min: 1,
-                      step: 1
+                      step: 1,
+                      min: 1
                     }}
                   />
                 </Grid>
               </Grid>
-            </AccordionDetails>
-          </Accordion>
-          
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Response
-            </Typography>
+            </Box>
             
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : testResults ? (
-              <>
-                <Paper sx={{ p: 2, mb: 2, bgcolor: '#f5f5f5' }}>
-                  <Typography whiteSpace="pre-wrap">
-                    {testResults.response}
-                  </Typography>
-                </Paper>
-                
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Response Metadata</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <pre>{JSON.stringify(testResults.metadata, null, 2)}</pre>
-                  </AccordionDetails>
-                </Accordion>
-              </>
-            ) : (
-              <Box sx={{ py: 4, textAlign: 'center' }}>
-                <Typography color="text.secondary">
-                  Run a test to see the LLM response here.
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={runTest}
+                disabled={!currentPrompt?.id}
+                startIcon={<PlayArrowIcon />}
+              >
+                Run Test
+              </Button>
+            </Box>
+            
+            {testResults && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Test Results
                 </Typography>
+                <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                    {JSON.stringify(testResults, null, 2)}
+                  </pre>
+                </Paper>
               </Box>
             )}
           </Box>
-          
-          <Box sx={{ mt: 2, mb: 2, display: 'flex', gap: 2 }}>
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<ViewModuleIcon />}
-              onClick={handleOptimizePrompt}
-              disabled={!currentPrompt?.id || optimizing}
-            >
-              {optimizing ? <CircularProgress size={24} /> : 'Optimize Prompt'}
-            </Button>
-            
-            <Button
-              variant="outlined"
-              color="secondary"
-              startIcon={<ViewListIcon />}
-              onClick={handleGenerateAlternatives}
-              disabled={!currentPrompt?.id || generating}
-            >
-              {generating ? <CircularProgress size={24} /> : 'Generate Alternatives'}
-            </Button>
-          </Box>
-          
-          {optimizationError && (
-            <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
-              {optimizationError}
-            </Alert>
-          )}
-          
-          {optimizationResult && (
-            <Accordion sx={{ mt: 2, mb: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6">Optimization Recommendations</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box sx={{ whiteSpace: 'pre-wrap' }}>
-                  {optimizationResult.optimization_recommendations}
-                </Box>
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2">
-                    Execution Time: {optimizationResult.metrics.execution_time.toFixed(2)}s | 
-                    Model: {optimizationResult.metrics.provider}/{optimizationResult.metrics.model} | 
-                    Tokens: {optimizationResult.metrics.usage?.total_tokens || 'N/A'}
-                  </Typography>
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-          )}
-          
-          {generationError && (
-            <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
-              {generationError}
-            </Alert>
-          )}
-          
-          {alternativesResult && (
-            <Accordion sx={{ mt: 2, mb: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6">Alternative Prompt Versions</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box sx={{ whiteSpace: 'pre-wrap' }}>
-                  {alternativesResult.generated_alternatives}
-                </Box>
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2">
-                    Execution Time: {alternativesResult.metrics.execution_time.toFixed(2)}s | 
-                    Model: {alternativesResult.metrics.provider}/{alternativesResult.metrics.model} | 
-                    Tokens: {alternativesResult.metrics.usage?.total_tokens || 'N/A'}
-                  </Typography>
-                </Box>
-                {alternativesResult.saved_versions.length > 0 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle1">Saved Versions:</Typography>
-                    {alternativesResult.saved_versions.map((version) => (
-                      <Chip 
-                        key={version.version_id}
-                        label={`Version ${version.version_number}: ${version.title}`}
-                        color="primary"
-                        sx={{ m: 0.5 }}
-                      />
-                    ))}
-                  </Box>
-                )}
-              </AccordionDetails>
-            </Accordion>
-          )}
         </Paper>
       )}
       
