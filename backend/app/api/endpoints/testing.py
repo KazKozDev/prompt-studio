@@ -10,6 +10,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from app.core.config import settings
 from app.integrations.llm_clients import get_llm_client
+from app.db.models.user_settings import UserSettings
 
 router = APIRouter()
 
@@ -42,31 +43,48 @@ async def get_tests(
 @router.get("/providers")
 async def get_providers(
     current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
 ) -> Any:
     """Get information about available LLM providers."""
+    # Get user settings
+    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    
+    providers = []
+    
+    # OpenAI
+    if settings and settings.openai_key:
+        providers.append({
+            "id": "openai",
+            "name": "OpenAI",
+            "models": get_llm_client("openai", settings.openai_key).get_available_models()
+        })
+    
+    # Anthropic
+    if settings and settings.anthropic_key:
+        providers.append({
+            "id": "anthropic",
+            "name": "Anthropic",
+            "models": get_llm_client("anthropic", settings.anthropic_key).get_available_models()
+        })
+    
+    # Mistral
+    if settings and settings.mistral_key:
+        providers.append({
+            "id": "mistral",
+            "name": "Mistral",
+            "models": get_llm_client("mistral", settings.mistral_key).get_available_models()
+        })
+    
+    # Google
+    if settings and settings.google_key:
+        providers.append({
+            "id": "google",
+            "name": "Google AI",
+            "models": get_llm_client("google", settings.google_key).get_available_models()
+        })
+    
     return {
-        "providers": [
-            {
-                "id": "openai",
-                "name": "OpenAI",
-                "models": get_llm_client("openai").get_available_models()
-            },
-            {
-                "id": "anthropic",
-                "name": "Anthropic",
-                "models": get_llm_client("anthropic").get_available_models()
-            },
-            {
-                "id": "mistral",
-                "name": "Mistral",
-                "models": get_llm_client("mistral").get_available_models()
-            },
-            {
-                "id": "google",
-                "name": "Google AI",
-                "models": get_llm_client("google").get_available_models()
-            }
-        ]
+        "providers": providers
     }
 
 @router.post("/{prompt_id}/test")
@@ -84,6 +102,25 @@ async def test_prompt(
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
     
+    # Get user settings
+    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if not settings:
+        raise HTTPException(status_code=400, detail="API keys not configured")
+    
+    # Get API key for the selected provider
+    api_key = None
+    if provider == "openai":
+        api_key = settings.openai_key
+    elif provider == "anthropic":
+        api_key = settings.anthropic_key
+    elif provider == "mistral":
+        api_key = settings.mistral_key
+    elif provider == "google":
+        api_key = settings.google_key
+    
+    if not api_key:
+        raise HTTPException(status_code=400, detail=f"API key not configured for {provider}")
+    
     # Log start time for metrics
     start_time = time.time()
     response = {}
@@ -100,7 +137,7 @@ async def test_prompt(
         
         # Get the appropriate client and process prompt
         try:
-            client = get_llm_client(provider)
+            client = get_llm_client(provider, api_key)
             raw_response = client.process_prompt(formatted_content, model, parameters)
             response = client.format_response(raw_response)
         except ValueError as e:

@@ -3,6 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
+from app.db.base_class import Base
+from app.db.models.user import User
+from app.db.models.prompt import Prompt
+from app.db.models.template import Template
+from app.db.models.analytics import PromptAnalytics
+from app.db.models.user_settings import UserSettings
 
 Base = declarative_base()
 

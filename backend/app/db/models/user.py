@@ -16,10 +16,15 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Use string references to avoid circular dependencies
-    prompts = relationship("Prompt", back_populates="user", cascade="all, delete-orphan")
+    prompts = relationship("Prompt", back_populates="user")
     tests = relationship("Test", back_populates="user", cascade="all, delete-orphan")
-    templates = relationship("Template", back_populates="user", cascade="all, delete-orphan")
+    templates = relationship("Template", back_populates="user")
     
     # Связи с документами и коллекциями для системы RAG
     documents = relationship("Document", back_populates="user", cascade="all, delete-orphan")
     document_collections = relationship("DocumentCollection", back_populates="user", cascade="all, delete-orphan")
+
+    settings = relationship("UserSettings", back_populates="user", uselist=False)
+
+    # Связи с другими таблицами
+    analytics = relationship("PromptAnalytics", back_populates="user")
