@@ -325,35 +325,30 @@ const PromptEditor: React.FC = () => {
     switch (element.type) {
       case 'text':
         return (
-          <Box sx={{ mb: 1 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={3}>
-                <FormControl fullWidth>
-                  <InputLabel>Role</InputLabel>
-                  <Select
-                    value={element.role || 'user'}
-                    label="Role"
-                    onChange={(e) => handleModalityChange(index, 'role', e.target.value)}
-                  >
-                    {TEXT_ROLES.map(role => (
-                      <MenuItem key={role.value} value={role.value}>
-                        {role.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={9}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  label="Content"
-                  value={element.content || ''}
-                  onChange={(e) => handleModalityChange(index, 'content', e.target.value)}
-                />
-              </Grid>
-            </Grid>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 1 }}>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel>Role</InputLabel>
+              <Select
+                value={element.role || 'user'}
+                onChange={(e) => handleModalityChange(index, 'role', e.target.value)}
+                label="Role"
+              >
+                {TEXT_ROLES.map(role => (
+                  <MenuItem key={role.value} value={role.value}>
+                    {role.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              multiline
+              rows={1}
+              value={element.content || ''}
+              onChange={(e) => handleModalityChange(index, 'content', e.target.value)}
+              placeholder="Enter text content..."
+              size="small"
+            />
           </Box>
         );
         
@@ -680,12 +675,12 @@ const PromptEditor: React.FC = () => {
               
               {promptData.content.map((element, index) => (
                 <Paper key={index} sx={{ p: 2, mb: 2, position: 'relative' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <FormControl sx={{ minWidth: 150 }}>
-                      <InputLabel>Modality Type</InputLabel>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                      <InputLabel>Modify Type</InputLabel>
                       <Select
                         value={element.type}
-                        label="Modality Type"
+                        label="Modify Type"
                         onChange={(e) => handleModalityChange(index, 'type', e.target.value)}
                       >
                         {MODALITY_TYPES.map((type) => (
@@ -693,14 +688,47 @@ const PromptEditor: React.FC = () => {
                         ))}
                       </Select>
                     </FormControl>
+                    {element.type === 'text' && (
+                      <FormControl size="small" sx={{ minWidth: 150 }}>
+                        <InputLabel>Role</InputLabel>
+                        <Select
+                          value={element.role || 'user'}
+                          onChange={(e) => handleModalityChange(index, 'role', e.target.value)}
+                          label="Role"
+                        >
+                          {TEXT_ROLES.map(role => (
+                            <MenuItem key={role.value} value={role.value}>
+                              {role.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                    <TextField
+                      fullWidth
+                      multiline
+                      minRows={4}
+                      maxRows={8}
+                      value={element.type === 'text' ? element.content : ''}
+                      onChange={(e) => handleModalityChange(index, 'content', e.target.value)}
+                      placeholder="Enter content..."
+                      size="small"
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          minHeight: '120px',
+                          alignItems: 'flex-start'
+                        }
+                      }}
+                    />
                     <IconButton
+                      size="small"
                       color="error"
                       onClick={() => removeModalityElement(index)}
+                      sx={{ mt: 0.5 }}
                     >
                       <DeleteIcon />
                     </IconButton>
                   </Box>
-                  {renderModalityInput(element, index)}
                 </Paper>
               ))}
             </Box>
