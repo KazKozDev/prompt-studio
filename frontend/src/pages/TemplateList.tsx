@@ -1,24 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Box, Typography, Paper, Grid, Card, CardContent, CardActions, Button, 
-  Chip, TextField, InputAdornment, CircularProgress, Alert, Dialog, 
+  TextField, InputAdornment, CircularProgress, Alert, Dialog, 
   DialogTitle, DialogContent, DialogActions, FormControlLabel, Switch,
-  IconButton, Tooltip, Tabs, Tab, Accordion, AccordionSummary, AccordionDetails, Divider
+  IconButton, Tooltip, Tabs, Tab
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { 
-  fetchTemplates, fetchPublicTemplates, createTemplate, updateTemplate, 
-  deleteTemplate, setCurrentTemplate, Template
+  fetchTemplates, fetchPublicTemplates, createTemplate, 
+  deleteTemplate, Template
 } from '../store/slices/templateSlice';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import PublicIcon from '@mui/icons-material/Public';
-import LockIcon from '@mui/icons-material/Lock';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const TemplateList: React.FC = () => {
   const navigate = useNavigate();
@@ -110,7 +107,22 @@ const TemplateList: React.FC = () => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">Templates</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <TextField
+            label="Search Templates"
+            variant="outlined"
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: '300px' }}
+          />
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -122,23 +134,6 @@ const TemplateList: React.FC = () => {
       </Box>
       
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-      
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
-        <TextField
-          label="Search Templates"
-          variant="outlined"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ width: '300px' }}
-        />
-      </Box>
       
       <Box sx={{ mb: 3 }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
@@ -154,60 +149,69 @@ const TemplateList: React.FC = () => {
       ) : filteredTemplates.length > 0 ? (
         <>
           {tabValue === 1 && (
-            <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.light', color: 'primary.contrastText' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
               <Typography variant="h5" gutterBottom>
-                Professional Prompt Templates for Business Applications
+                Advanced Prompting Techniques for Business Applications
               </Typography>
               <Typography variant="body1">
-                Below are ready-to-use templates for common business tasks. These templates follow best practices
-                for prompt engineering and can be customized for your specific needs. Click "Use Template" to create
-                a new prompt based on any template, or copy it to your templates collection.
+                Ready-to-use templates featuring state-of-the-art prompting techniques for business tasks. These templates incorporate 
+                multimodal input capabilities and are optimized for modern AI systems. Click "Use Template" to create 
+                a new prompt based on any template, or copy it to your personal collection.
               </Typography>
             </Paper>
           )}
           
           <Grid container spacing={3}>
             {filteredTemplates.map((template) => (
-              <Grid item xs={12} sm={6} md={4} key={template.id}>
-                <Card>
-                  <CardContent>
+              <Grid item xs={12} sm={6} md={6} key={template.id}>
+                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <Typography variant="h6" component="div" sx={{ mb: 1 }}>
                         {template.name}
                       </Typography>
-                      <Chip 
-                        icon={template.is_public ? <PublicIcon /> : <LockIcon />}
-                        label={template.is_public ? 'Public' : 'Private'}
-                        size="small"
-                        color={template.is_public ? 'primary' : 'default'}
-                      />
                     </Box>
                     
-                    {template.description && (
+                    {template.description && Number(tabValue) === 1 ? (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {template.description.split('\n\nAdvantage:')[0]}
+                      </Typography>
+                    ) : template.description && (
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         {template.description}
                       </Typography>
                     )}
                     
-                    <Typography variant="caption" display="block" sx={{ mb: 1 }}>
-                      Elements: {Object.keys(template.structure).length}
-                    </Typography>
+                    {Number(tabValue) === 1 && template.structure.example_prompt && (
+                      <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
+                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                          Example:
+                        </Typography>
+                        <Typography variant="caption" sx={{ whiteSpace: 'pre-wrap', display: 'block' }}>
+                          {template.structure.example_prompt.default_value}
+                        </Typography>
+                      </Box>
+                    )}
                     
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {Object.entries(template.structure).map(([key, value]: [string, any]) => (
-                        <Chip 
-                          key={key}
-                          label={key}
-                          size="small"
-                          variant="outlined"
-                          color={
-                            value.type === 'text' ? 'primary' : 
-                            value.type === 'image' ? 'secondary' : 
-                            'default'
-                          }
-                        />
-                      ))}
-                    </Box>
+                    {Number(tabValue) === 1 && template.structure.example_chain && (
+                      <Box sx={{ mt: 1, p: 1.5, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
+                        <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', mb: 0.5 }}>
+                          Example:
+                        </Typography>
+                        <Typography variant="caption" sx={{ whiteSpace: 'pre-wrap', display: 'block' }}>
+                          {template.structure.example_chain.default_value}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {Number(tabValue) === 1 && template.description && template.description.includes('\n\nAdvantage:') && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        <Box component="span" sx={{ fontWeight: 'bold', fontStyle: 'italic' }}>Advantage: </Box>
+                        <Box component="span" sx={{ fontStyle: 'italic' }}>
+                          {template.description.split('\n\nAdvantage:')[1].trim()}
+                        </Box>
+                      </Typography>
+                    )}
                   </CardContent>
                   <CardActions>
                     <Button 
