@@ -199,18 +199,8 @@ const taxonomyData: Category[] = [
 ];
 
 const TaxonomyPage: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategory, setExpandedCategory] = useState<string | false>(false);
   const [expandAll, setExpandAll] = useState(false);
-
-  // Обработчик изменения поискового запроса
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-    // Если пользователь начинает поиск, раскроем все категории
-    if (event.target.value) {
-      setExpandAll(true);
-    }
-  };
 
   // Обработчик раскрытия/скрытия категории
   const handleCategoryToggle = (categoryId: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -228,44 +218,16 @@ const TaxonomyPage: React.FC = () => {
     // Можно добавить уведомление об успешном копировании
   };
 
-  // Фильтруем техники по поисковому запросу
-  const filteredData = searchQuery 
-    ? taxonomyData.map(category => ({
-        ...category,
-        techniques: category.techniques.filter(technique => 
-          technique.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          technique.description.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      })).filter(category => category.techniques.length > 0)
-    : taxonomyData;
-
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">Prompt Techniques Taxonomy</Typography>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <TextField
-            label="Search Techniques"
-            variant="outlined"
-            size="small"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ width: '300px' }}
-          />
-          <Button
-            variant="outlined"
-            onClick={handleToggleAll}
-          >
-            {expandAll ? 'Collapse All' : 'Expand All'}
-          </Button>
-        </Box>
+        <Button
+          variant="outlined"
+          onClick={handleToggleAll}
+        >
+          {expandAll ? 'Collapse All' : 'Expand All'}
+        </Button>
       </Box>
 
       <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
@@ -279,7 +241,7 @@ const TaxonomyPage: React.FC = () => {
         </Typography>
       </Paper>
 
-      {filteredData.map((category) => (
+      {taxonomyData.map((category) => (
         <Accordion
           key={category.id}
           expanded={expandAll || expandedCategory === category.id}
