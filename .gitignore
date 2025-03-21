@@ -12,3 +12,4 @@ frontend/node_modules/.cache/
 *.bin
 *.safetensors
 *.pack
+.qodo
