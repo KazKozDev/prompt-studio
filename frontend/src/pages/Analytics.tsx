@@ -20,8 +20,6 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import BubbleChartIcon from '@mui/icons-material/BubbleChart';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
-import SchoolIcon from '@mui/icons-material/School';
-import PsychologyIcon from '@mui/icons-material/Psychology';
 import { useNavigate } from 'react-router-dom';
 
 // TabPanel component for tab display
@@ -345,9 +343,26 @@ const Analytics: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+    <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">Analytics</Typography>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel id="time-frame-label">Period</InputLabel>
+            <Select
+              labelId="time-frame-label"
+              id="time-frame"
+              value={timeFrame}
+              label="Period"
+              onChange={handleTimeFrameChange}
+              size="small"
+            >
+              <MenuItem value="week">Week</MenuItem>
+              <MenuItem value="month">Month</MenuItem>
+              <MenuItem value="quarter">Quarter</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
       {error && (
@@ -357,42 +372,19 @@ const Analytics: React.FC = () => {
         </Alert>
       )}
 
-      <Paper sx={{ width: '100%', mb: 4, p: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mb: 3 }}>
-          <Button
-            variant="outlined"
-            startIcon={<SchoolIcon />}
-            onClick={() => navigate('/learning')}
-          >
-            Learning System
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<PsychologyIcon />}
-            onClick={() => navigate('/optimization')}
-          >
-            Optimize Prompts
-          </Button>
-        </Box>
+      <Paper sx={{ p: 3, mb: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+        <Typography variant="h5" gutterBottom>
+          Analytics Dashboard
+        </Typography>
+        <Typography variant="body1">
+          Monitor and analyze your prompt performance metrics. Track token usage, compare different providers, 
+          and gain insights into your prompt engineering effectiveness. Use these analytics to optimize your prompts 
+          and improve interaction quality with AI models.
+        </Typography>
+      </Paper>
 
-        <Box sx={{ mb: 2 }}>
-          <FormControl sx={{ minWidth: 120, mr: 2 }}>
-            <InputLabel id="time-frame-label">Period</InputLabel>
-            <Select
-              labelId="time-frame-label"
-              id="time-frame"
-              value={timeFrame}
-              label="Period"
-              onChange={handleTimeFrameChange}
-            >
-              <MenuItem value="week">Week</MenuItem>
-              <MenuItem value="month">Month</MenuItem>
-              <MenuItem value="quarter">Quarter</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-        
-        <Tabs value={tabIndex} onChange={handleTabChange}>
+      <Paper sx={{ width: '100%', mb: 4, p: 3 }}>
+        <Tabs value={tabIndex} onChange={handleTabChange} sx={{ mb: 3 }}>
           <Tab label="Standard Metrics" />
           <Tab label="Advanced Analytics" />
         </Tabs>
@@ -549,7 +541,7 @@ const Analytics: React.FC = () => {
           <AnalyticsDashboard />
         </TabPanel>
       </Paper>
-    </Container>
+    </Box>
   );
 };
 
