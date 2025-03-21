@@ -1,8 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 
 from app.api.routes import api_router
 from app.core.config import settings
+from app.db.init_db import init_db
+from app.db.session import SessionLocal
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Multimodal Prompt Studio",
@@ -10,6 +16,17 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
 )
+
+# Initialize database
+@app.on_event("startup")
+async def init_data():
+    db = SessionLocal()
+    try:
+        init_db(db)
+    except Exception as e:
+        logger.error(f"Error initializing database: {str(e)}")
+    finally:
+        db.close()
 
 # Configure CORS
 origins = [
