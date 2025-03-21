@@ -5,3 +5,10 @@ __pycache__/
 .DS_Store
 *.log
 .env
+backend/uploads/
+frontend/node_modules/.cache/
+*.so
+*.dylib
+*.bin
+*.safetensors
+*.pack
