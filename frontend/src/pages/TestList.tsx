@@ -273,7 +273,7 @@ const TestList: React.FC = () => {
                     {test.created_at ? new Date(test.created_at).toLocaleDateString() : 'N/A'}
                   </TableCell>
                   <TableCell>
-                    <Box sx={{ display: 'flex' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <Tooltip title="Details">
                         <IconButton 
                           size="small"
