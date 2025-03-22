@@ -1042,13 +1042,13 @@ const PromptEditor: React.FC = () => {
       
       {tabValue === 1 && (
         <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Test Prompt
+          <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+            Run Prompt:
           </Typography>
           
           <Box sx={{ p: 2 }}>
-            <Box sx={{ mb: 2 }}>
-              <FormControl sx={{ minWidth: 200, mr: 2 }}>
+            <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
+              <FormControl sx={{ minWidth: 200 }}>
                 <InputLabel id="provider-label">Provider</InputLabel>
                 <Select
                   labelId="provider-label"
@@ -1064,7 +1064,7 @@ const PromptEditor: React.FC = () => {
                 </Select>
               </FormControl>
               
-              <FormControl sx={{ minWidth: 250, mr: 2 }}>
+              <FormControl sx={{ minWidth: 250 }}>
                 <InputLabel id="model-label">Model</InputLabel>
                 <Select
                   labelId="model-label"
@@ -1079,47 +1079,37 @@ const PromptEditor: React.FC = () => {
                   ))}
                 </Select>
               </FormControl>
-            </Box>
-            
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Parameters
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Temperature"
-                    type="number"
-                    value={testParameters.temperature}
-                    onChange={(e) => setTestParameters({
-                      ...testParameters,
-                      temperature: parseFloat(e.target.value)
-                    })}
-                    inputProps={{
-                      step: 0.1,
-                      min: 0,
-                      max: 1
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    fullWidth
-                    label="Max Tokens"
-                    type="number"
-                    value={testParameters.max_tokens}
-                    onChange={(e) => setTestParameters({
-                      ...testParameters,
-                      max_tokens: parseInt(e.target.value)
-                    })}
-                    inputProps={{
-                      step: 1,
-                      min: 1
-                    }}
-                  />
-                </Grid>
-              </Grid>
+
+              <TextField
+                label="Temperature"
+                type="number"
+                value={testParameters.temperature}
+                onChange={(e) => setTestParameters({
+                  ...testParameters,
+                  temperature: parseFloat(e.target.value)
+                })}
+                inputProps={{
+                  step: 0.1,
+                  min: 0,
+                  max: 1
+                }}
+                sx={{ width: '150px' }}
+              />
+
+              <TextField
+                label="Max Tokens"
+                type="number"
+                value={testParameters.max_tokens}
+                onChange={(e) => setTestParameters({
+                  ...testParameters,
+                  max_tokens: parseInt(e.target.value)
+                })}
+                inputProps={{
+                  step: 1,
+                  min: 1
+                }}
+                sx={{ width: '150px' }}
+              />
             </Box>
             
             <Box sx={{ display: 'flex', gap: 2 }}>
@@ -1130,7 +1120,7 @@ const PromptEditor: React.FC = () => {
                 disabled={!currentPrompt?.id}
                 startIcon={<PlayArrowIcon />}
               >
-                Run Test
+                Run Prompt
               </Button>
             </Box>
             
