@@ -8,7 +8,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { 
-  fetchPrompts, createPrompt, updatePrompt, deletePrompt, setCurrentPrompt, testPrompt, Prompt 
+  fetchPrompts, createPrompt, updatePrompt, deletePrompt, setCurrentPrompt, testPrompt, fetchPromptVersions, Prompt 
 } from '../store/slices/promptSlice';
 import { Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -24,6 +24,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import axios from 'axios';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import RagSelector from '../components/prompt/RagSelector';
+import ReactMarkdown from 'react-markdown';
 
 // Interface for modality element
 interface ModalityElement {
@@ -44,12 +45,17 @@ interface OptimizationResult {
   prompt_id: number;
   prompt_name: string;
   optimization_recommendations: string;
+  optimized_content?: string;
   metrics: {
     execution_time: number;
     provider: string;
     model: string;
-    usage: any;
-  };
+    usage?: {
+      input_tokens: number;
+      output_tokens: number;
+      total_tokens: number;
+    }
+  }
 }
 
 // Interface for alternatives data
@@ -57,17 +63,16 @@ interface AlternativesResult {
   prompt_id: number;
   prompt_name: string;
   generated_alternatives: string;
-  saved_versions: Array<{
+  alternatives?: Array<{
+    title?: string;
+    content: string;
+    focus?: string;
+  }>;
+  saved_versions?: Array<{
     version_id: number;
     version_number: number;
     title: string;
   }>;
-  metrics: {
-    execution_time: number;
-    provider: string;
-    model: string;
-    usage: any;
-  };
 }
 
 // Extended interface for Prompt with versions field
@@ -158,8 +163,8 @@ const PromptEditor: React.FC = () => {
         const BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
         const API_URL = BASE_URL.endsWith('/api') ? BASE_URL : `${BASE_URL}/api`;
         
-        console.log('Fetching providers from:', `${API_URL}/testing/providers`);
-        const response = await axios.get(`${API_URL}/testing/providers`, {
+        console.log('Fetching providers from:', `${API_URL}/tests/providers`);
+        const response = await axios.get(`${API_URL}/tests/providers`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -189,8 +194,8 @@ const PromptEditor: React.FC = () => {
           console.warn('No providers returned from API');
           // Set default providers if none returned
           const defaultProviders = [
-            { id: 'openai', name: 'OpenAI', models: ['gpt-3.5-turbo', 'gpt-4'] },
-            { id: 'anthropic', name: 'Anthropic', models: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229'] },
+            { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'o3-mini'] },
+            { id: 'anthropic', name: 'Anthropic', models: ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20240620', 'claude-3-5-haiku-20241022'] },
             { id: 'mistral', name: 'Mistral', models: ['mistral-medium', 'mistral-large'] }
           ];
           setProviders(defaultProviders);
@@ -203,8 +208,8 @@ const PromptEditor: React.FC = () => {
         console.error('Failed to fetch providers:', error);
         // Set default providers on error
         const defaultProviders = [
-          { id: 'openai', name: 'OpenAI', models: ['gpt-3.5-turbo', 'gpt-4'] },
-          { id: 'anthropic', name: 'Anthropic', models: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229'] },
+          { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'o3-mini'] },
+          { id: 'anthropic', name: 'Anthropic', models: ['claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20240620', 'claude-3-5-haiku-20241022'] },
           { id: 'mistral', name: 'Mistral', models: ['mistral-medium', 'mistral-large'] }
         ];
         setProviders(defaultProviders);
@@ -244,6 +249,8 @@ const PromptEditor: React.FC = () => {
           content: promptToEdit.content || [],
           template_id: promptToEdit.template_id || null
         });
+        // Загружаем версии промпта
+        dispatch(fetchPromptVersions(parseInt(id)));
       } else {
         // If prompt not found in state, fetch it
         dispatch(fetchPrompts());
@@ -258,6 +265,13 @@ const PromptEditor: React.FC = () => {
         template_id: null
       });
     }
+    
+    // Сбрасываем состояние теста при смене промпта
+    setTestParameters({
+      temperature: 0.7,
+      max_tokens: 500
+    });
+    setRagContext('');
   }, [id, dispatch, prompts]);
 
   // Handle form input changes
@@ -391,6 +405,11 @@ const PromptEditor: React.FC = () => {
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    
+    // Загружаем версии промпта при переключении на вкладку версий
+    if (newValue === 2 && id) {
+      dispatch(fetchPromptVersions(parseInt(id)));
+    }
   };
 
   // Render different modality inputs based on type
@@ -716,12 +735,12 @@ const PromptEditor: React.FC = () => {
       
       <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
             <TextField
               fullWidth
               multiline
-              minRows={2}
-              maxRows={4}
+              minRows={1}
+              maxRows={2}
               label="Prompt Name"
               name="name"
               value={promptData.name}
@@ -730,16 +749,19 @@ const PromptEditor: React.FC = () => {
               sx={{
                 '& .MuiInputBase-root': {
                   alignItems: 'flex-start'
+                },
+                '& .MuiOutlinedInput-root': {
+                  padding: '8px 14px'
                 }
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={8}>
             <TextField
               fullWidth
               multiline
-              minRows={2}
-              maxRows={4}
+              minRows={1}
+              maxRows={2}
               label="Description"
               name="description"
               value={promptData.description}
@@ -747,6 +769,9 @@ const PromptEditor: React.FC = () => {
               sx={{
                 '& .MuiInputBase-root': {
                   alignItems: 'flex-start'
+                },
+                '& .MuiOutlinedInput-root': {
+                  padding: '8px 14px'
                 }
               }}
             />
@@ -769,10 +794,6 @@ const PromptEditor: React.FC = () => {
           ) : (
             <Box sx={{ mt: 3 }}>
               <Paper sx={{ p: 3, mb: 3 }}>
-                {/* Block Management Section */}
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 500 }}>
-                  Add new prompt block:
-                </Typography>
                 <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
                   {MODALITY_TYPES.map((type) => (
                     <Button
@@ -887,20 +908,6 @@ const PromptEditor: React.FC = () => {
                         </>
                       )}
 
-                      <Button
-                        variant="outlined"
-                        color="info"
-                        size="small"
-                        startIcon={<SearchIcon />}
-                        onClick={() => setRagSearchOpen(true)}
-                        sx={{ 
-                          height: '40px',
-                          minWidth: '150px'
-                        }}
-                      >
-                        RAG Search
-                      </Button>
-                      
                       <Box sx={{ flexGrow: 1 }} />
                       
                       <IconButton
@@ -1042,19 +1049,16 @@ const PromptEditor: React.FC = () => {
       
       {tabValue === 1 && (
         <Paper sx={{ p: 3 }}>
-          <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-            Run Prompt:
-          </Typography>
-          
           <Box sx={{ p: 2 }}>
             <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel id="provider-label">Provider</InputLabel>
+              <FormControl sx={{ minWidth: 200, '& .MuiInputBase-root': { height: '40px' } }}>
+                <InputLabel id="provider-label" size="small">Provider</InputLabel>
                 <Select
                   labelId="provider-label"
                   value={testProvider}
                   label="Provider"
                   onChange={(e) => setTestProvider(e.target.value)}
+                  size="small"
                 >
                   {providers.map((provider) => (
                     <MenuItem key={provider.id} value={provider.id}>
@@ -1064,13 +1068,14 @@ const PromptEditor: React.FC = () => {
                 </Select>
               </FormControl>
               
-              <FormControl sx={{ minWidth: 250 }}>
+              <FormControl sx={{ minWidth: 250, '& .MuiInputBase-root': { height: '42px' } }}>
                 <InputLabel id="model-label">Model</InputLabel>
                 <Select
                   labelId="model-label"
                   value={testModel}
                   label="Model"
                   onChange={(e) => setTestModel(e.target.value)}
+                  size="small"
                 >
                   {availableModels.map((model) => (
                     <MenuItem key={model} value={model}>
@@ -1093,7 +1098,8 @@ const PromptEditor: React.FC = () => {
                   min: 0,
                   max: 1
                 }}
-                sx={{ width: '150px' }}
+                sx={{ width: '120px', '& .MuiInputBase-root': { height: '40px' } }}
+                size="small"
               />
 
               <TextField
@@ -1108,31 +1114,123 @@ const PromptEditor: React.FC = () => {
                   step: 1,
                   min: 1
                 }}
-                sx={{ width: '150px' }}
+                sx={{ width: '120px', '& .MuiInputBase-root': { height: '40px' } }}
+                size="small"
               />
-            </Box>
-            
-            <Box sx={{ display: 'flex', gap: 2 }}>
+              
               <Button
                 variant="contained"
                 color="primary"
                 onClick={runTest}
                 disabled={!currentPrompt?.id}
                 startIcon={<PlayArrowIcon />}
+                sx={{ height: '40px', ml: -0.5 }}
+                size="small"
               >
                 Run Prompt
+              </Button>
+
+              <Button
+                variant="outlined"
+                color="info"
+                size="small"
+                startIcon={<SearchIcon />}
+                onClick={() => setRagSearchOpen(true)}
+                sx={{ height: '40px' }}
+              >
+                RAG Search
               </Button>
             </Box>
             
             {testResults && (
               <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Test Results
-                </Typography>
-                <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                    {JSON.stringify(testResults, null, 2)}
-                  </pre>
+                {testResults.response && (
+                  <Paper 
+                    sx={{ 
+                      p: 2, 
+                      mb: 3,
+                      bgcolor: 'background.paper'
+                    }}
+                  >
+                    <ReactMarkdown>
+                      {testResults.response}
+                    </ReactMarkdown>
+                  </Paper>
+                )}
+                
+                <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
+                  {testResults.metadata && (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                      {/* Provider & Model */}
+                      <Chip 
+                        label={`Provider: ${testResults.metadata.provider || 'N/A'}`} 
+                        size="small" 
+                        color="primary" 
+                        variant="outlined"
+                      />
+                      <Chip 
+                        label={`Model: ${testResults.metadata.model || 'N/A'}`} 
+                        size="small" 
+                        color="secondary" 
+                        variant="outlined"
+                      />
+                      <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+
+                      {/* Performance */}
+                      <Chip 
+                        label={`Time: ${testResults.metadata.execution_time ? Math.round(testResults.metadata.execution_time * 100) / 100 + 's' : 'N/A'}`} 
+                        size="small" 
+                        color="info" 
+                        variant="outlined"
+                      />
+                      <Chip 
+                        label={`Success: ${testResults.metadata.success ? '✓' : '✗'}`} 
+                        size="small" 
+                        color={testResults.metadata.success ? "success" : "error"} 
+                        variant="outlined"
+                      />
+                      
+                      {/* Token Usage */}
+                      {testResults.metadata.usage && (
+                        <>
+                          <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+                          <Chip 
+                            label={`Prompt: ${testResults.metadata.usage.prompt_tokens || 0} tokens`} 
+                            size="small" 
+                            variant="outlined"
+                          />
+                          <Chip 
+                            label={`Completion: ${testResults.metadata.usage.completion_tokens || 0} tokens`} 
+                            size="small" 
+                            variant="outlined"
+                          />
+                          <Chip 
+                            label={`Total: ${testResults.metadata.usage.total_tokens || 0} tokens`} 
+                            size="small" 
+                            variant="outlined"
+                            color="primary"
+                          />
+                        </>
+                      )}
+                      
+                      {/* Parameters */}
+                      {testResults.metadata.parameters && (
+                        <>
+                          <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+                          <Accordion sx={{ flexGrow: 1 }}>
+                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                              <Typography variant="body2" fontWeight="bold">Parameters</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '0.85rem' }}>
+                                {JSON.stringify(testResults.metadata.parameters, null, 2)}
+                              </pre>
+                            </AccordionDetails>
+                          </Accordion>
+                        </>
+                      )}
+                    </Box>
+                  )}
                 </Paper>
               </Box>
             )}
@@ -1142,10 +1240,6 @@ const PromptEditor: React.FC = () => {
       
       {tabValue === 2 && id && (
         <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Version History
-          </Typography>
-          
           {currentPrompt?.versions?.length ? (
             currentPrompt.versions.map((version, index) => (
               <Card key={index} sx={{ mb: 2 }}>
@@ -1246,6 +1340,158 @@ const PromptEditor: React.FC = () => {
             disabled={!searchQuery.trim() || searching}
           >
             {searching ? <CircularProgress size={24} /> : 'Search'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Optimization Result Dialog */}
+      <Dialog 
+        open={!!optimizationResult} 
+        onClose={() => setOptimizationResult(null)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Prompt Optimization Results</DialogTitle>
+        <DialogContent>
+          {optimizationResult && (
+            <>
+              <Box sx={{ mb: 3, mt: 1 }}>
+                <Typography variant="h6" gutterBottom>
+                  Optimization Recommendations
+                </Typography>
+                <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
+                  <ReactMarkdown>
+                    {optimizationResult.optimization_recommendations}
+                  </ReactMarkdown>
+                </Paper>
+              </Box>
+              
+              {optimizationResult.optimized_content && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Optimized Prompt
+                  </Typography>
+                  <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
+                    <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
+                      {optimizationResult.optimized_content}
+                    </pre>
+                  </Paper>
+                </Box>
+              )}
+              
+              {optimizationResult.metrics && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    Metrics
+                  </Typography>
+                  <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
+                    <Typography variant="body2" gutterBottom>
+                      Provider: {optimizationResult.metrics.provider}
+                    </Typography>
+                    <Typography variant="body2" gutterBottom>
+                      Model: {optimizationResult.metrics.model}
+                    </Typography>
+                    <Typography variant="body2" gutterBottom>
+                      Execution Time: {optimizationResult.metrics.execution_time.toFixed(2)}s
+                    </Typography>
+                  </Paper>
+                </Box>
+              )}
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOptimizationResult(null)}>
+            Close
+          </Button>
+          {optimizationResult?.optimized_content && (
+            <Button 
+              variant="contained" 
+              onClick={() => {
+                if (optimizationResult.optimized_content) {
+                  // Применить оптимизированный промпт
+                  const newContent = currentPrompt?.content?.map(item => {
+                    if (item.type === 'text' && item.role === 'user') {
+                      return {...item, content: optimizationResult.optimized_content};
+                    }
+                    return item;
+                  }) || [];
+                  
+                  setPromptData({
+                    ...promptData,
+                    content: newContent
+                  });
+                  setOptimizationResult(null);
+                }
+              }}
+            >
+              Apply Optimization
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Alternatives Result Dialog */}
+      <Dialog 
+        open={!!alternativesResult} 
+        onClose={() => setAlternativesResult(null)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Generated Alternatives</DialogTitle>
+        <DialogContent>
+          {alternativesResult && (
+            <>
+              <Box sx={{ mb: 3, mt: 1 }}>
+                <Typography variant="h6" gutterBottom>
+                  Alternative Prompt Versions
+                </Typography>
+                <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
+                  <ReactMarkdown>
+                    {alternativesResult.generated_alternatives}
+                  </ReactMarkdown>
+                </Paper>
+              </Box>
+              
+              {alternativesResult.alternatives && alternativesResult.alternatives.map((alt, index) => (
+                <Box key={index} sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Alternative {index + 1}: {alt.title || 'Unnamed Alternative'}
+                  </Typography>
+                  <Paper sx={{ p: 2, bgcolor: 'background.paper' }}>
+                    <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
+                      {alt.content}
+                    </pre>
+                  </Paper>
+                  <Button 
+                    variant="outlined" 
+                    sx={{ mt: 1 }}
+                    onClick={() => {
+                      // Применить альтернативный промпт
+                      const newContent = currentPrompt?.content?.map(item => {
+                        if (item.type === 'text' && item.role === 'user') {
+                          return {...item, content: alt.content};
+                        }
+                        return item;
+                      }) || [];
+                      
+                      setPromptData({
+                        ...promptData,
+                        content: newContent
+                      });
+                      setAlternativesResult(null);
+                    }}
+                  >
+                    Apply This Alternative
+                  </Button>
+                </Box>
+              ))}
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAlternativesResult(null)}>
+            Close
           </Button>
         </DialogActions>
       </Dialog>

@@ -245,7 +245,7 @@ const TestList: React.FC = () => {
                 <TableCell>Status</TableCell>
                 <TableCell>Variants</TableCell>
                 <TableCell>Created</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

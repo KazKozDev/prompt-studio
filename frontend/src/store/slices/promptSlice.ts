@@ -15,6 +15,8 @@ export interface Prompt {
   template_id?: number | null;
   created_at?: string;
   updated_at?: string;
+  versions?: any[];
+  version?: number;
 }
 
 // Интерфейс для состояния
@@ -128,7 +130,7 @@ export const testPrompt = createAsyncThunk(
   'prompts/test',
   async ({ promptId, provider, model, parameters }: TestPromptParams, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/testing/${promptId}/test`, parameters, {
+      const response = await axios.post(`${API_URL}/tests/${promptId}/test`, parameters, {
         params: { provider, model }
       });
       return response.data;
@@ -143,6 +145,28 @@ export const testPrompt = createAsyncThunk(
               ? JSON.stringify(error.response.data) 
               : error.response.data) 
            : 'Failed to test prompt');
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const fetchPromptVersions = createAsyncThunk(
+  'prompts/fetchVersions',
+  async (promptId: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/prompts/${promptId}/versions`);
+      return { promptId, versions: response.data || [] };
+    } catch (error: any) {
+      console.error('Error fetching prompt versions:', error);
+      const errorMessage = error.response?.data?.detail 
+        ? (typeof error.response.data.detail === 'object' 
+           ? JSON.stringify(error.response.data.detail) 
+           : error.response.data.detail) 
+        : (error.response?.data 
+           ? (typeof error.response.data === 'object' 
+              ? JSON.stringify(error.response.data) 
+              : error.response.data) 
+           : 'Failed to fetch prompt versions');
       return rejectWithValue(errorMessage);
     }
   }
@@ -163,6 +187,7 @@ const promptSlice = createSlice({
     },
     setCurrentPrompt: (state, action) => {
       state.currentPrompt = action.payload;
+      state.testResults = null;
     }
   },
   extraReducers: (builder) => {
@@ -237,6 +262,22 @@ const promptSlice = createSlice({
         state.testResults = action.payload;
       })
       .addCase(testPrompt.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Fetch prompt versions
+      .addCase(fetchPromptVersions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPromptVersions.fulfilled, (state, action) => {
+        state.loading = false;
+        // Handle the response from fetchPromptVersions
+        if (state.currentPrompt && state.currentPrompt.id === action.payload.promptId) {
+          state.currentPrompt.versions = action.payload.versions;
+        }
+      })
+      .addCase(fetchPromptVersions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

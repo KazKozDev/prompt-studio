@@ -117,6 +117,9 @@ class AnthropicClient(LLMClientBase):
             system = ""
             messages = []
             
+            # Логирование входных данных
+            logging.info(f"Anthropic client received prompt_data: {prompt_data}")
+            
             for item in prompt_data:
                 if item.get("role") == "system":
                     system += item.get("content", "") + "\n"
@@ -130,6 +133,10 @@ class AnthropicClient(LLMClientBase):
             if system and system.endswith("\n"):
                 system = system.rstrip()
             
+            # Логирование обработанных данных
+            logging.info(f"Anthropic system message: {system}")
+            logging.info(f"Anthropic messages: {messages}")
+            
             # Создаем аргументы для запроса, добавляя system только если он не пустой
             request_kwargs = {
                 "model": model,
@@ -141,6 +148,9 @@ class AnthropicClient(LLMClientBase):
             # Добавляем system только если он не пустой
             if system:
                 request_kwargs["system"] = system
+            
+            # Логирование запроса
+            logging.info(f"Anthropic request_kwargs: {request_kwargs}")
             
             response = self.client.messages.create(**request_kwargs)
             return response
