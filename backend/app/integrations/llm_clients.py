@@ -99,7 +99,10 @@ class AnthropicClient(LLMClientBase):
         try:
             import anthropic
             self.api_key = self.api_key or settings.ANTHROPIC_API_KEY
-            self.client = anthropic.Anthropic(api_key=self.api_key)
+            self.client = anthropic.Anthropic(
+                api_key=self.api_key,
+                default_headers={"anthropic-version": "2023-06-01"}
+            )
         except Exception as e:
             logging.error(f"Failed to initialize Anthropic client: {str(e)}")
             self.client = None
@@ -123,16 +126,36 @@ class AnthropicClient(LLMClientBase):
                         "content": item.get("content", "")
                     })
             
-            response = self.client.messages.create(
-                model=model,
-                max_tokens=parameters.get("max_tokens", 1000),
-                temperature=parameters.get("temperature", 0.7),
-                system=system if system else None,
-                messages=messages
-            )
+            # Удаляем последний символ новой строки, если он есть
+            if system and system.endswith("\n"):
+                system = system.rstrip()
+            
+            # Создаем аргументы для запроса, добавляя system только если он не пустой
+            request_kwargs = {
+                "model": model,
+                "max_tokens": parameters.get("max_tokens", 1000),
+                "temperature": parameters.get("temperature", 0.7),
+                "messages": messages
+            }
+            
+            # Добавляем system только если он не пустой
+            if system:
+                request_kwargs["system"] = system
+            
+            response = self.client.messages.create(**request_kwargs)
             return response
         except Exception as e:
-            logging.error(f"Error calling Anthropic API: {str(e)}")
+            # Более детальное логирование ошибок
+            error_type = type(e).__name__
+            error_msg = str(e)
+            
+            if 'authentication_error' in error_msg.lower() or '401' in error_msg:
+                logging.error(f"Anthropic API authentication error: {error_msg}. This may be due to invalid API key or API version.")
+                logging.error(f"API version being used: 2023-06-01")
+                logging.error(f"API key (first 4 chars): {self.api_key[:4]}..." if self.api_key else "No API key")
+            else:
+                logging.error(f"Error calling Anthropic API: {error_type} - {error_msg}")
+            
             raise
     
     def format_response(self, response):

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Path, Query, HTTPException, Body
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_active_user, get_db
@@ -11,8 +11,83 @@ from concurrent.futures import ThreadPoolExecutor
 from app.core.config import settings
 from app.integrations.llm_clients import get_llm_client
 from app.db.models.user_settings import UserSettings
+import traceback
+import logging
+from pydantic import BaseModel
 
 router = APIRouter()
+
+# Функция для логирования успешных тестов
+async def log_successful_test(
+    db: Session,
+    user_id: int,
+    prompt_id: int,
+    provider: str,
+    model: str,
+    execution_time: float,
+    usage: Dict[str, Any]
+):
+    """
+    Логирует успешное тестирование промпта
+    """
+    metrics = {
+        "provider": provider,
+        "model": model,
+        "execution_time": execution_time,
+        "timestamp": time.time(),
+        "success": True,
+        "usage": usage
+    }
+    
+    analytics_entry = PromptAnalytics(
+        prompt_id=prompt_id,
+        user_id=user_id,
+        provider=provider,
+        metrics=metrics,
+        usage_count=1,
+        average_response_time=execution_time,
+        average_token_count=usage.get("total_tokens", 0)
+    )
+    
+    db.add(analytics_entry)
+    db.commit()
+
+# Функция для логирования неудачных тестов
+async def log_failed_test(
+    db: Session,
+    user_id: int,
+    prompt_id: int,
+    provider: str,
+    model: str,
+    error_message: str
+):
+    """
+    Логирует неудачное тестирование промпта
+    """
+    metrics = {
+        "provider": provider,
+        "model": model,
+        "timestamp": time.time(),
+        "success": False,
+        "error": error_message
+    }
+    
+    analytics_entry = PromptAnalytics(
+        prompt_id=prompt_id,
+        user_id=user_id,
+        provider=provider,
+        metrics=metrics,
+        usage_count=1,
+        average_response_time=0
+    )
+    
+    db.add(analytics_entry)
+    db.commit()
+
+# Добавим определение схемы ответа
+class TestResponse(BaseModel):
+    response: str
+    metadata: Dict[str, Any]
 
 @router.get("/")
 async def get_tests(
@@ -87,89 +162,86 @@ async def get_providers(
         "providers": providers
     }
 
-@router.post("/{prompt_id}/test")
+@router.post("/{prompt_id}/test", response_model=TestResponse)
 async def test_prompt(
-    prompt_id: int = Path(..., description="The ID of the prompt to test"),
-    provider: str = Query(..., description="The provider to use for testing"),
-    model: str = Query(..., description="The model to use for testing"),
-    parameters: Dict[str, Any] = {},
+    prompt_id: int,
+    provider: str = Query(..., description="The LLM provider"),
+    model: str = Query(..., description="The specific model"),
+    parameters: Dict[str, Any] = Body({}, description="Model parameters"),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
-) -> Any:
-    """Test a prompt with a specific provider and model."""
-    # Fetch the prompt
-    prompt = db.query(Prompt).filter(Prompt.id == prompt_id, Prompt.user_id == current_user.id).first()
-    if not prompt:
-        raise HTTPException(status_code=404, detail="Prompt not found")
-    
-    # Log start time for metrics
+):
     start_time = time.time()
-    response = {}
-    metrics = {
-        "provider": provider,
-        "model": model,
-        "parameters": parameters,
-        "timestamp": time.time(),
-    }
+    response_content = None
+    usage = {}
+    success = True
+    error_message = None
     
     try:
-        # Format the prompt content based on the provider
+        # Get the prompt
+        prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
+        if not prompt:
+            raise HTTPException(status_code=404, detail=f"Prompt {prompt_id} not found")
+        
+        # Format the prompt for the provider
         formatted_content = format_prompt_for_provider(prompt.content, provider)
         
         # Get the appropriate client and process prompt
         try:
-            client = get_llm_client(provider)
+            client = get_llm_client(provider, user=current_user, db=db)
             raw_response = client.process_prompt(formatted_content, model, parameters)
             response = client.format_response(raw_response)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
-        
-        # Calculate execution time
-        execution_time = time.time() - start_time
-        
-        # Update metrics with results
-        metrics.update({
-            "execution_time": execution_time,
-            "usage": response.get("usage", {}),
-            "success": True
-        })
-        
-        # Log analytics
-        analytics_entry = PromptAnalytics(
-            prompt_id=prompt.id,
-            provider=provider,
-            metrics=metrics,
-            usage_count=1,
-            average_response_time=execution_time,
-            average_token_count=response.get("usage", {}).get("total_tokens", 0)
-        )
-        db.add(analytics_entry)
-        db.commit()
-        
-        return {
-            "response": response.get("content", "No content returned"),
-            "metadata": metrics
-        }
-        
+            
+        # Extract content and usage from response
+        response_content = response.get("content", "")
+        usage = response.get("usage", {})
+    
     except Exception as e:
-        # Log error in metrics
-        metrics.update({
-            "success": False,
-            "error": str(e)
-        })
-        
-        # Still log analytics for failed attempts
-        analytics_entry = PromptAnalytics(
-            prompt_id=prompt.id,
-            provider=provider,
-            metrics=metrics,
-            usage_count=1,
-            average_response_time=time.time() - start_time
-        )
-        db.add(analytics_entry)
-        db.commit()
-        
-        raise HTTPException(status_code=500, detail=str(e))
+        success = False
+        error_message = str(e)
+        traceback_str = traceback.format_exc()
+        logging.error(f"Error testing prompt {prompt_id}: {str(e)}\n{traceback_str}")
+    
+    # Calculate execution time
+    execution_time = time.time() - start_time
+    
+    # Log analytics
+    try:
+        if success:
+            await log_successful_test(
+                db=db,
+                user_id=current_user.id,
+                prompt_id=prompt_id,
+                provider=provider,
+                model=model,
+                execution_time=execution_time,
+                usage=usage
+            )
+        else:
+            await log_failed_test(
+                db=db,
+                user_id=current_user.id, 
+                prompt_id=prompt_id,
+                provider=provider,
+                model=model,
+                error_message=error_message
+            )
+    except Exception as e:
+        logging.error(f"Error logging analytics: {str(e)}")
+    
+    # Return response with metadata
+    return {
+        "response": response_content or error_message,
+        "metadata": {
+            "provider": provider,
+            "model": model,
+            "execution_time": round(execution_time, 2),
+            "success": success,
+            "usage": usage
+        }
+    }
 
 @router.post("/{prompt_id}/compare")
 async def compare_prompt(
