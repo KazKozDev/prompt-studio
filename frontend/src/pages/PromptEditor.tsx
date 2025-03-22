@@ -155,10 +155,18 @@ const PromptEditor: React.FC = () => {
   useEffect(() => {
     const fetchProviders = async () => {
       try {
-        const BASE_URL = process.env.REACT_APP_API_BASE_URL;
-        const API_URL = BASE_URL?.endsWith('/api') ? BASE_URL : `${BASE_URL}/api`;
-        const response = await axios.get(`${API_URL}/testing/providers`);
+        const BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+        const API_URL = BASE_URL.endsWith('/api') ? BASE_URL : `${BASE_URL}/api`;
+        
+        console.log('Fetching providers from:', `${API_URL}/testing/providers`);
+        const response = await axios.get(`${API_URL}/testing/providers`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
         if (response.data && response.data.providers) {
+          console.log('Providers data:', response.data.providers);
           setProviders(response.data.providers);
           
           // Set available models for the selected provider
@@ -169,10 +177,41 @@ const PromptEditor: React.FC = () => {
             if (!testModel && selectedProvider.models.length > 0) {
               setTestModel(selectedProvider.models[0]);
             }
+          } else if (response.data.providers.length > 0) {
+            // If the selected provider is not available, use the first one
+            setTestProvider(response.data.providers[0].id);
+            setAvailableModels(response.data.providers[0].models);
+            if (response.data.providers[0].models.length > 0) {
+              setTestModel(response.data.providers[0].models[0]);
+            }
           }
+        } else {
+          console.warn('No providers returned from API');
+          // Set default providers if none returned
+          const defaultProviders = [
+            { id: 'openai', name: 'OpenAI', models: ['gpt-3.5-turbo', 'gpt-4'] },
+            { id: 'anthropic', name: 'Anthropic', models: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229'] },
+            { id: 'mistral', name: 'Mistral', models: ['mistral-medium', 'mistral-large'] }
+          ];
+          setProviders(defaultProviders);
+          
+          // Set default model
+          setAvailableModels(defaultProviders[0].models);
+          setTestModel(defaultProviders[0].models[0]);
         }
       } catch (error) {
         console.error('Failed to fetch providers:', error);
+        // Set default providers on error
+        const defaultProviders = [
+          { id: 'openai', name: 'OpenAI', models: ['gpt-3.5-turbo', 'gpt-4'] },
+          { id: 'anthropic', name: 'Anthropic', models: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229'] },
+          { id: 'mistral', name: 'Mistral', models: ['mistral-medium', 'mistral-large'] }
+        ];
+        setProviders(defaultProviders);
+        
+        // Set default model
+        setAvailableModels(defaultProviders[0].models);
+        setTestModel(defaultProviders[0].models[0]);
       }
     };
     
