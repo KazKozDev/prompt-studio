@@ -1048,7 +1048,7 @@ const PromptEditor: React.FC = () => {
           
           <Box sx={{ p: 2 }}>
             <Box sx={{ mb: 2 }}>
-              <FormControl sx={{ minWidth: 120, mr: 2 }}>
+              <FormControl sx={{ minWidth: 200, mr: 2 }}>
                 <InputLabel id="provider-label">Provider</InputLabel>
                 <Select
                   labelId="provider-label"
@@ -1064,7 +1064,7 @@ const PromptEditor: React.FC = () => {
                 </Select>
               </FormControl>
               
-              <FormControl sx={{ minWidth: 120, mr: 2 }}>
+              <FormControl sx={{ minWidth: 250, mr: 2 }}>
                 <InputLabel id="model-label">Model</InputLabel>
                 <Select
                   labelId="model-label"
